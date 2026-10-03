@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { createRouteClient } from '@/server/config/supabase.config';
 import { getContainer, lazyControllers } from '@/server/di/container';
 import { HttpResponse } from '@/server/api/http-response';
-import { mapError } from '@/server/middlewares/error.middleware';
+import { logError, mapError } from '@/server/middlewares/error.middleware';
 import { authenticate } from '@/server/middlewares/auth.middleware';
 import { registraAcesso } from '@/server/middlewares/session-acesso.middleware';
 
@@ -34,6 +34,16 @@ export async function POST(request: Request): Promise<NextResponse> {
     });
 
     if (error) {
+      if (!error.status || error.status >= 500) {
+        logError({
+          level: 'error',
+          message: 'Falha do Supabase Auth durante o login',
+          context: { status: error.status, code: error.code, name: error.name },
+        });
+        return HttpResponse.serviceUnavailable(
+          'Não foi possível acessar o serviço de autenticação. Tente novamente mais tarde.',
+        ).toNextResponse();
+      }
       return HttpResponse.unauthorized('E-mail ou senha inválidos').toNextResponse();
     }
 

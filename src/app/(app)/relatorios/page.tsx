@@ -126,7 +126,7 @@ export default function RelatoriosPage() {
       />
 
       <Card>
-        <CardContent className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <CardContent className="grid gap-3 p-4 sm:p-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="space-y-1.5">
             <Label htmlFor="relatorio-inicio" className="text-xs">
               Início do período
@@ -255,7 +255,7 @@ export default function RelatoriosPage() {
                 </Card>
 
                 <Card>
-                  <CardContent className="p-0">
+                  <CardContent className="p-0 sm:p-0">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -331,7 +331,7 @@ export default function RelatoriosPage() {
                     CSV
                   </Button>
                 </CardHeader>
-                <CardContent className="p-0">
+                <CardContent className="p-0 sm:p-0">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -432,7 +432,7 @@ export default function RelatoriosPage() {
                   <CardHeader>
                     <CardTitle>Detalhamento</CardTitle>
                   </CardHeader>
-                  <CardContent className="p-0">
+                  <CardContent className="p-0 sm:p-0">
                     <Table>
                       <TableHeader>
                         <TableRow>

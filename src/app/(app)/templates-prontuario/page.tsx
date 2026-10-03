@@ -186,7 +186,7 @@ export default function TemplatesProntuarioPage() {
       />
 
       <Card>
-        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+        <CardContent className="flex flex-col gap-3 p-4 sm:p-4 sm:flex-row sm:items-center">
           <Input
             value={busca}
             onChange={(evento) => setBusca(evento.target.value)}
@@ -223,7 +223,7 @@ export default function TemplatesProntuarioPage() {
         />
       ) : (
         <Card>
-          <CardContent className="p-0">
+          <CardContent className="p-0 sm:p-0">
             <Table>
               <TableHeader>
                 <TableRow>

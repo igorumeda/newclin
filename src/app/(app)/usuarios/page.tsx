@@ -268,7 +268,7 @@ export default function UsuariosPage() {
       </Alert>
 
       <Card>
-        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+        <CardContent className="flex flex-col gap-3 p-4 sm:p-4 sm:flex-row sm:items-center">
           <Input
             value={busca}
             onChange={(evento) => setBusca(evento.target.value)}

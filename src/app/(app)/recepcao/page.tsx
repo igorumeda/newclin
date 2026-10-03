@@ -51,7 +51,7 @@ export default function RecepcaoPage() {
       />
 
       <Card>
-        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+        <CardContent className="flex flex-col gap-3 p-4 sm:p-4 sm:flex-row sm:items-center">
           <div className="space-y-1">
             <label htmlFor="recepcao-data" className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Data de atendimento

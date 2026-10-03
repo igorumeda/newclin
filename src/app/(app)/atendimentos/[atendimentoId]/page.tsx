@@ -207,7 +207,7 @@ export default function AtendimentoPage() {
 
       {atendimento.finalizado && pode('prontuario:adendo') ? (
         <Card>
-          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <CardContent className="flex flex-col gap-3 p-4 sm:p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-medium">Registrar adendo</p>
               <p className="text-xs text-muted-foreground">

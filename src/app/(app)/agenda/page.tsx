@@ -150,7 +150,7 @@ function AgendaPageInterno() {
       />
 
       <Card>
-        <CardContent className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center">
+        <CardContent className="flex flex-col gap-3 p-4 sm:p-4 lg:flex-row lg:items-center">
           <div className="flex items-center gap-2">
             <Button
               variant="outline"

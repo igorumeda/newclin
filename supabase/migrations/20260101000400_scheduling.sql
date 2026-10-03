@@ -89,7 +89,7 @@ alter table public.agendamentos
   exclude using gist (
     profissional_id with =,
     unidade_id with =,
-    tsrange(data_hora_inicio, data_hora_fim) with &&
+    tstzrange(data_hora_inicio, data_hora_fim) with &&
   )
   where (encaixe = false and deleted_at is null and status <> 'cancelado' and status <> 'faltou');
 
@@ -236,7 +236,7 @@ as $$
     and a.deleted_at is null
     and a.status not in ('cancelado', 'faltou')
     and (p_ignorar_agendamento_id is null or a.id <> p_ignorar_agendamento_id)
-    and tsrange(a.data_hora_inicio, a.data_hora_fim) && tsrange(p_inicio, p_fim)
+    and tstzrange(a.data_hora_inicio, a.data_hora_fim) && tstzrange(p_inicio, p_fim)
   order by a.data_hora_inicio;
 $$;
 
@@ -266,7 +266,7 @@ as $$
     and b.unidade_id = p_unidade_id
     and b.deleted_at is null
     and b.ativo
-    and tsrange(b.inicio, b.fim) && tsrange(p_inicio, p_fim)
+    and tstzrange(b.inicio, b.fim) && tstzrange(p_inicio, p_fim)
   order by b.inicio;
 $$;
 

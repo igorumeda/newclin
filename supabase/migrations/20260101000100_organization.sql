@@ -195,7 +195,7 @@ create table if not exists public.bloqueios_agenda (
 );
 
 create index if not exists bloqueios_agenda_busca_idx
-  on public.bloqueios_agenda using gist (tsrange(inicio, fim))
+  on public.bloqueios_agenda using gist (tstzrange(inicio, fim))
   where deleted_at is null and ativo;
 
 -- ─────────────────────────────────────────────────────────────────────────────

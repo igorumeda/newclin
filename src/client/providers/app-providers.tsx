@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
+import { TooltipProvider } from '@/client/ui/overlay';
 import { AppThemeProvider } from './theme-provider';
 import { AuthProvider } from './auth-provider';
 
@@ -30,7 +31,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AppThemeProvider>
-        <AuthProvider>{children}</AuthProvider>
+        <TooltipProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </TooltipProvider>
         <Toaster
           position="top-right"
           richColors

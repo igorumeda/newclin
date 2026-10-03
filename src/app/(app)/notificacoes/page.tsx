@@ -161,7 +161,7 @@ export default function NotificacoesPage() {
 
         <TabsContent value="fila">
           <Card>
-            <CardContent className="flex flex-col gap-3 p-4 sm:flex-row">
+            <CardContent className="flex flex-col gap-3 p-4 sm:p-4 sm:flex-row">
               <Select value={canal} onValueChange={setCanal}>
                 <SelectTrigger className="sm:w-44">
                   <SelectValue />
@@ -200,7 +200,7 @@ export default function NotificacoesPage() {
             />
           ) : (
             <Card>
-              <CardContent className="p-0">
+              <CardContent className="p-0 sm:p-0">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -268,7 +268,7 @@ export default function NotificacoesPage() {
                 <code>{'{{profissional}}'}</code>.
               </p>
             </CardHeader>
-            <CardContent className="p-0">
+            <CardContent className="p-0 sm:p-0">
               {modelos.isLoading ? (
                 <TabelaSkeleton linhas={4} />
               ) : (modelos.data ?? []).length === 0 ? (

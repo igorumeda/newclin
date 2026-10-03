@@ -84,7 +84,7 @@ function AtendimentosPageInterno() {
       </PageHeader>
 
       <Card>
-        <CardContent className="grid gap-3 p-4 sm:grid-cols-3">
+        <CardContent className="grid gap-3 p-4 sm:p-4 sm:grid-cols-3">
           <div className="space-y-1.5">
             <Label htmlFor="filtro-paciente" className="text-xs">
               Paciente
@@ -136,7 +136,7 @@ function AtendimentosPageInterno() {
         />
       ) : (
         <Card>
-          <CardContent className="p-0">
+          <CardContent className="p-0 sm:p-0">
             <Table>
               <TableHeader>
                 <TableRow>

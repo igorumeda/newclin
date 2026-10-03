@@ -51,7 +51,8 @@ export async function authenticate(params: AuthenticateParams): Promise<Result<R
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, rede_id, nome, email, role, unidades_acesso, profissional_id, ativo')
-      .eq('id', authData.user.id)
+      .eq('auth_user_id', authData.user.id)
+      .is('deleted_at', null)
       .maybeSingle<ProfileRow>();
 
     if (profileError || !profile || !profile.ativo) {

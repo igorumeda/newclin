@@ -108,7 +108,7 @@ begin
     (v_pac_3, v_rede_id, 'Helena Martins', '39053344705', '2018-06-20', 'feminino', '11977772222', null,
      '04094050', 'Rua Sena Madureira', '800', 'Vila Clementino', 'São Paulo', 'SP',
      'João Pedro Martins', '11977772222', null, null, true, timezone('utc', now()), 'recepcao'),
-    (v_pac_4, v_rede_id, 'Rafael Lima Barros', '22000217191', '1992-01-30', 'masculino', '11977773333', 'rafael.barros@exemplo.com',
+    (v_pac_4, v_rede_id, 'Rafael Lima Barros', '54499096081', '1992-01-30', 'masculino', '11977773333', 'rafael.barros@exemplo.com',
      '03047000', 'Rua do Oratório', '120', 'Mooca', 'São Paulo', 'SP', null, null,
      'Penicilina', 'Asma', true, timezone('utc', now()), 'recepcao'),
     (v_pac_5, v_rede_id, 'Clara Ferreira Dias', '12345678909', '2001-09-15', 'feminino', '11977774444', 'clara.dias@exemplo.com',
@@ -185,31 +185,34 @@ begin
   end;
 
   -- ── Usuários (auth.users + profiles) ──────────────────────────────────────
+  -- O Auth espera strings vazias nos tokens sem valor; NULL pode impedir o login.
   insert into auth.users (
     id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
-    raw_app_meta_data, raw_user_meta_data, created_at, updated_at
+    raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+    confirmation_token, recovery_token, email_change, email_change_token_new,
+    email_change_token_current, phone_change, phone_change_token, reauthentication_token
   )
   values
     ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
      'admin@clinica.exemplo.com', v_senha, timezone('utc', now()),
      '{"provider":"email","providers":["email"]}',
      jsonb_build_object('rede_id', v_rede_id, 'role', 'admin_rede', 'nome', 'Administrador da Rede', 'unidades_acesso', '[]'::jsonb)::jsonb,
-     timezone('utc', now()), timezone('utc', now())),
+     timezone('utc', now()), timezone('utc', now()), '', '', '', '', '', '', '', ''),
     ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
      'gestor@clinica.exemplo.com', v_senha, timezone('utc', now()),
      '{"provider":"email","providers":["email"]}',
      jsonb_build_object('rede_id', v_rede_id, 'role', 'gestor_unidade', 'nome', 'Gestora Unidade Centro', 'unidades_acesso', jsonb_build_array(v_unidade_a))::jsonb,
-     timezone('utc', now()), timezone('utc', now())),
+     timezone('utc', now()), timezone('utc', now()), '', '', '', '', '', '', '', ''),
     ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
      'medico@clinica.exemplo.com', v_senha, timezone('utc', now()),
      '{"provider":"email","providers":["email"]}',
      jsonb_build_object('rede_id', v_rede_id, 'role', 'profissional', 'nome', 'Dra. Ana Ribeiro', 'profissional_id', v_prof_1, 'unidades_acesso', jsonb_build_array(v_unidade_a, v_unidade_b))::jsonb,
-     timezone('utc', now()), timezone('utc', now())),
+     timezone('utc', now()), timezone('utc', now()), '', '', '', '', '', '', '', ''),
     ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa4', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
      'recepcao@clinica.exemplo.com', v_senha, timezone('utc', now()),
      '{"provider":"email","providers":["email"]}',
      jsonb_build_object('rede_id', v_rede_id, 'role', 'recepcao', 'nome', 'Recepção Centro', 'unidades_acesso', jsonb_build_array(v_unidade_a))::jsonb,
-     timezone('utc', now()), timezone('utc', now()))
+     timezone('utc', now()), timezone('utc', now()), '', '', '', '', '', '', '', '')
   on conflict (id) do nothing;
 
   -- `auth.identities.id` é coluna gerada nas versões recentes do GoTrue e

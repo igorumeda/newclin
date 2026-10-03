@@ -95,7 +95,7 @@ export default function AuditoriaPage() {
       </PageHeader>
 
       <Card>
-        <CardContent className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-5">
+        <CardContent className="grid gap-3 p-4 sm:p-4 sm:grid-cols-2 lg:grid-cols-5">
           <div className="space-y-1.5">
             <Label className="text-xs">Entidade</Label>
             <Select value={entidade} onValueChange={setEntidade}>
@@ -173,7 +173,7 @@ export default function AuditoriaPage() {
         />
       ) : (
         <Card>
-          <CardContent className="p-0">
+          <CardContent className="p-0 sm:p-0">
             <Table>
               <TableHeader>
                 <TableRow>

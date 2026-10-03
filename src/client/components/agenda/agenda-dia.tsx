@@ -71,7 +71,7 @@ export function AgendaDia({
         </CardTitle>
         <Badge variant="outline">fuso {timezone}</Badge>
       </CardHeader>
-      <CardContent className="overflow-x-auto p-0">
+      <CardContent className="overflow-x-auto p-0 sm:p-0">
         <div className="flex min-w-max">
           <div className="w-16 shrink-0 border-r">
             {horas.map((hora) => (

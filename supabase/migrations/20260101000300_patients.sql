@@ -47,9 +47,8 @@ create table if not exists public.pacientes (
   constraint pacientes_nascimento_valido check (data_nascimento <= current_date),
   constraint pacientes_email_formato check (email is null or email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
   constraint pacientes_responsavel_menor check (
-    data_nascimento > (current_date - interval '18 years')
-    or responsavel_nome is not null
-    or consentimento_lgpd = true
+    data_nascimento <= (current_date - interval '18 years')
+    or coalesce(length(btrim(responsavel_nome)), 0) >= 3
   ),
   constraint pacientes_uf_formato check (uf is null or uf ~ '^[A-Z]{2}$')
 );
