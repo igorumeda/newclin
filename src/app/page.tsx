@@ -1,6 +1,10 @@
 import { redirect } from 'next/navigation';
+import { isSupabaseConfigured } from '@/server/config/env.config';
 
-/** A raiz encaminha para o painel; o middleware cuida da autenticação. */
+/**
+ * A raiz encaminha para o painel; o `middleware.ts` cuida da autenticação.
+ * Sem as credenciais do Supabase, mostra o guia de configuração.
+ */
 export default function HomePage() {
-  redirect('/dashboard');
+  redirect(isSupabaseConfigured() ? '/dashboard' : '/configuracao-pendente');
 }
