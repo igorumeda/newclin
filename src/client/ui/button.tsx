@@ -43,12 +43,15 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         disabled={disabled || carregando}
+        aria-busy={carregando || undefined}
         {...props}
       >
         {carregando ? (
           <>
             <Loader2 className="animate-spin" aria-hidden />
-            <span>{children}</span>
+            {size !== 'icon' ? (
+              <span className="inline-flex items-center gap-2 [&_svg]:hidden">{children}</span>
+            ) : null}
           </>
         ) : (
           children

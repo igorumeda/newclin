@@ -1609,7 +1609,7 @@ export function CreateUserForm({ onSubmit, isLoading }: CreateUserFormProps) {
             />
 
             <div className="flex items-center gap-3">
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" carregando={isLoading}>
                 {isLoading ? 'Criando...' : 'Criar Usuário'}
               </Button>
               <Button
@@ -1634,7 +1634,7 @@ export function CreateUserForm({ onSubmit, isLoading }: CreateUserFormProps) {
 2. **Validação no client espelha o domínio**: As regras do Zod devem refletir as regras dos Value Objects do domínio.
 3. **Mensagens de erro em português**: O usuário final é brasileiro.
 4. **Labels obrigatórios em todos os campos**: Nunca placeholders como substituto de label.
-5. **Feedback de loading no botão de submit**: Desabilite o botão e mostre texto de loading.
+5. **Feedback de loading no botão de submit**: Use o estado `carregando` do componente `Button`, que desabilita a ação e sinaliza `aria-busy`. Enquanto carrega, apenas o indicador de loading fica visível entre os ícones; os ícones SVG originais ficam ocultos e reaparecem ao terminar. Preserve o texto da ação ou use um texto de loading, sem adicionar outro spinner no consumidor.
 6. **Toast de sucesso/erro**: Sempre notifique o resultado da ação.
 7. **Reset após sucesso**: Limpe o formulário após criação bem-sucedida.
 
@@ -2045,7 +2045,7 @@ Dark mode é gerenciado pelo `next-themes`. O toggle está no Header (botão Sol
 | 19  | **Ignorar dark mode**                           | Sempre implemente ambos                                    |
 | 20  | **Ignorar mobile**                              | Teste em todos os breakpoints                              |
 | 21  | **Breadcrumbs sem link**                        | Todo item do breadcrumb é clicável (exceto o último)       |
-| 22  | **Botões sem estado disabled durante loading**  | Sempre desabilite durante requests                         |
+| 22  | **Botões sem estado disabled durante loading**  | Use `Button` com `carregando`; exiba apenas o spinner, ocultando os ícones originais até terminar |
 | 23  | **Tooltips em elementos touch-only**            | Tooltips são para desktop/mouse                            |
 | 24  | **Overlays sem fechar com ESC**                 | Todo overlay fecha com ESC                                 |
 | 25  | **Scroll travado em modais sem scroll**         | Modais devem ter scroll interno quando necessário          |
