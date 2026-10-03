@@ -1,0 +1,34 @@
+{
+  "name": "Clínica SaaS — Gestão de clínicas e prontuário eletrônico",
+  "short_name": "Clínica SaaS",
+  "description": "Agenda, recepção, prontuário eletrônico, documentos clínicos e relatórios para redes de clínicas.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#0ea5e9",
+  "categories": ["health", "medical", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icone.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Agenda de hoje", "url": "/agenda" },
+    { "name": "Recepção", "url": "/recepcao" },
+    { "name": "Pacientes", "url": "/pacientes" },
+    { "name": "Documentos", "url": "/documentos" }
+  ]
+}
