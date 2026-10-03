@@ -13,6 +13,7 @@ import type { ITemplateProntuarioRepository } from '../../../domain/repositories
 import { EstruturaTemplate } from '../../../domain/value-objects/estrutura-template.vo';
 import { camposFixosPadrao } from '../../../domain/value-objects/campos-fixos.vo';
 import type { AtendimentoMapper, EnriquecimentoAtendimento } from '../../mappers/prontuario.mapper';
+import type { RegistrarAcessoProntuario } from '@/modules/audit/domain/services/log-acesso-prontuario.interface';
 import type { RegistrarAuditoriaInputDto } from '@/modules/audit/application/use-cases/registrar-auditoria/registrar-auditoria.input.dto';
 import type { RegistrarAuditoriaOutputDto } from '@/modules/audit/application/use-cases/registrar-auditoria/registrar-auditoria.output.dto';
 import type {
@@ -26,12 +27,17 @@ import type {
 
 export type RegistrarAuditoria = IUseCase<RegistrarAuditoriaInputDto, RegistrarAuditoriaOutputDto>;
 
+/** Porta do log de acesso ao prontuário exigido pela LGPD (§5). */
+export type { RegistrarAcessoProntuario } from '@/modules/audit/domain/services/log-acesso-prontuario.interface';
+
 export type AtendimentoUseCasesDependencies = {
   atendimentoRepository: IAtendimentoRepository;
   templateRepository: ITemplateProntuarioRepository;
   mapper: AtendimentoMapper;
   /** Trilha de auditoria das ações sensíveis do prontuário (§5). */
   auditoria?: RegistrarAuditoria;
+  /** Log de leitura do prontuário — LGPD (§5). */
+  registrarAcesso?: RegistrarAcessoProntuario;
   enricher?: { enriquecer: (params: { atendimentos: Atendimento[] }) => Promise<Map<string, EnriquecimentoAtendimento>> };
 };
 
@@ -132,6 +138,7 @@ export class ObterAtendimentoUseCase extends UseCase<ObterAtendimentoInputDto, O
   private readonly templateRepository: ITemplateProntuarioRepository;
   private readonly mapper: AtendimentoMapper;
   private readonly enricher?: AtendimentoUseCasesDependencies['enricher'];
+  private readonly registrarAcesso?: RegistrarAcessoProntuario;
 
   constructor(dependencies: AtendimentoUseCasesDependencies) {
     super();
@@ -139,11 +146,19 @@ export class ObterAtendimentoUseCase extends UseCase<ObterAtendimentoInputDto, O
     this.templateRepository = dependencies.templateRepository;
     this.mapper = dependencies.mapper;
     this.enricher = dependencies.enricher;
+    this.registrarAcesso = dependencies.registrarAcesso;
   }
 
   async execute(input: ObterAtendimentoInputDto): Promise<Result<ObterAtendimentoOutputDto>> {
     const atendimento = await this.atendimentoRepository.findById(input.atendimentoId);
     if (!atendimento) return Result.fail(new AtendimentoNotFoundError({ atendimentoId: input.atendimentoId }));
+
+    // LGPD (§5): toda leitura do prontuário é registrada na trilha de auditoria.
+    await this.registrarAcesso?.({
+      pacienteId: atendimento.pacienteId,
+      atendimentoId: atendimento.id.toString(),
+      unidadeId: atendimento.unidadeId,
+    });
 
     const enriquecimento = this.enricher
       ? (await this.enricher.enriquecer({ atendimentos: [atendimento] })).get(atendimento.id.toString())

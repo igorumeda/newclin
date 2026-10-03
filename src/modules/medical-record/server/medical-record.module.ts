@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { IUseCase } from '@core/application/use-case.interface';
 import type { IUnidadeLookup } from '@/modules/organization/domain/services/unidade-lookup.interface';
 import type { IRedeLookup } from '@/modules/organization/domain/services/rede-lookup.interface';
+import type { RegistrarAcessoProntuario } from '@/modules/audit/domain/services/log-acesso-prontuario.interface';
 import type { RegistrarAuditoriaInputDto } from '@/modules/audit/application/use-cases/registrar-auditoria/registrar-auditoria.input.dto';
 import type { RegistrarAuditoriaOutputDto } from '@/modules/audit/application/use-cases/registrar-auditoria/registrar-auditoria.output.dto';
 import { TemplateProntuarioPersistenceMapper, AtendimentoPersistenceMapper, EvolucaoPersistenceMapper, AnexoPersistenceMapper } from './infrastructure/persistence/mappers/prontuario-persistence.mapper';
@@ -50,6 +51,8 @@ export type MedicalRecordModuleDependencies = {
   organizationLookup: { unidadeLookup: IUnidadeLookup; redeLookup: IRedeLookup };
   /** Trilha de auditoria das ações sensíveis do prontuário (§5). */
   audit: IUseCase<RegistrarAuditoriaInputDto, RegistrarAuditoriaOutputDto>;
+  /** Log de leitura do prontuário — LGPD (§5), fornecido pelo módulo de auditoria. */
+  logAcessoProntuario: RegistrarAcessoProntuario;
 };
 
 export function createMedicalRecordModule(dependencies: MedicalRecordModuleDependencies) {
@@ -103,6 +106,7 @@ export function createMedicalRecordModule(dependencies: MedicalRecordModuleDepen
     templateRepository,
     mapper: mapper.atendimento,
     auditoria: dependencies.audit,
+    registrarAcesso: dependencies.logAcessoProntuario,
     enricher,
   };
 

@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { AuditoriaRepositoryImpl } from './infrastructure/persistence/repositories/auditoria.repository.impl';
 import { AuditoriaPersistenceMapper } from './infrastructure/persistence/mappers/auditoria-persistence.mapper';
 import { AuditWriterAdapter } from './infrastructure/adapters/audit-writer.adapter';
+import { LogAcessoProntuarioProvider } from './infrastructure/providers/log-acesso-prontuario.provider';
 import { AuditoriaMapper } from '../application/mappers/auditoria.mapper';
 import { RegistrarAuditoriaUseCase } from '../application/use-cases/registrar-auditoria/registrar-auditoria.use-case';
 import { ListarAuditoriaUseCase } from '../application/use-cases/listar-auditoria/listar-auditoria.use-case';
@@ -24,6 +25,7 @@ export function createAuditModule(dependencies: AuditModuleDependencies) {
   const listarAuditoria = new ListarAuditoriaUseCase({ auditoriaRepository, mapper });
 
   const writer = new AuditWriterAdapter({ registrarAuditoria });
+  const logAcessoProntuario = new LogAcessoProntuarioProvider({ supabase: dependencies.supabase });
   const controller = new AuditoriaController({ listarAuditoria });
 
   return {
@@ -31,6 +33,8 @@ export function createAuditModule(dependencies: AuditModuleDependencies) {
     writer,
     repositories: { auditoriaRepository },
     useCases: { registrarAuditoria, listarAuditoria },
+    /** Provider de log de leitura clínica reutilizado por prontuário e pacientes. */
+    logAcessoProntuario: logAcessoProntuario.registrar,
   };
 }
 

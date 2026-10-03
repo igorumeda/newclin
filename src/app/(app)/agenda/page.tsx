@@ -108,7 +108,7 @@ function AgendaPageInterno() {
     if (pacienteInicialId) setDialogoAberto(true);
   }, [pacienteInicialId]);
 
-  const itens = agenda.data ?? [];
+  const itens = React.useMemo(() => agenda.data ?? [], [agenda.data]);
   const porProfissional = React.useMemo(() => {
     if (profissionalId !== 'todos') return undefined;
     const mapa = new Map<string, { id: string; nome: string; cor?: string | null }>();

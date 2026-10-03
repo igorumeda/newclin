@@ -75,17 +75,17 @@ As migrations em [`supabase/migrations/`](./supabase/migrations) criam **tudo**:
 | # | Migration | Conteúdo |
 | --- | --- | --- |
 | `…000000` | `init_extensions_and_helpers` | extensões (`pgcrypto`, `btree_gist`, `unaccent`), helpers de `updated_at`, `current_rede_id()`, `current_user_role()`, `has_unit_access()` |
-| `…000100` | `organization` | `redes`, `unidades`, `unidades_acesso`, tema (`jsonb`) e configurações da rede |
-| `…000200` | `users_and_permissions` | `usuarios` (perfil espelhado de `auth.users`), permissões por papel e vínculo com profissionais |
+| `…000100` | `organization` | `redes` (tema `jsonb`, logotipo e configurações), `unidades` (endereço, timezone) e `profissionais`/`profissional_unidades` |
+| `…000200` | `users_and_permissions` | `profiles` (`auth_user_id`, `role`, `unidades_acesso uuid[]`, `profissional_id`), trigger de provisionamento a partir de `auth.users` e helpers de RLS |
 | `…000300` | `patients` | `pacientes`, responsáveis, consentimento LGPD, RPCs de busca/duplicidade/exportação de dados |
-| `…000400` | `scheduling` | `tipos_atendimento`, `horarios_unidade`, `agendamentos` (exclusão por `GiST`), `bloqueios`, painel de recepção |
+| `…000400` | `scheduling` | `tipos_atendimento`, `horarios_atendimento`, `agendamentos` (exclusão de sobreposição por `GiST`), `bloqueios_agenda`, histórico de status |
 | `…000500` | `medical_records` | `templates_prontuario` (estrutura `jsonb` versionada), `atendimentos`, `evolucoes`, `anexos` |
-| `…000600` | `clinical_documents` | `documentos` (numerados por trigger), `documentos_emitidos` imutáveis |
+| `…000600` | `clinical_documents` | `documentos` (numeração sequencial por trigger + imutabilidade após a emissão) |
 | `…000700` | `notifications` | `notificacoes`, `modelos_mensagem`, fila assíncrona e log de envios |
-| `…000800` | `audit` | `audit_logs` com `dados_antes`/`dados_depois` e retenção configurável |
+| `…000800` | `audit` | `audit_logs` (`dados_antes`/`dados_depois`, imutável), `registrar_auditoria()` e log de leitura de prontuário (LGPD) |
 | `…000900` | `rls_policies` | RLS habilitado + 50 políticas de isolamento por rede/unidade nas **19 tabelas** |
 | `…001000` | `storage` | buckets `logos` (público, 5 MB), `anexos` e `documentos` (privados, 10 MB) + políticas por prefixo de caminho |
-| `…001100` | `reports` | views e funções de relatórios (atendimentos, faltas, produtividade, distribuição) |
+| `…001100` | `reports` | funções de relatórios e `indicadores_dashboard()` (atendimentos, faltas, novos pacientes, distribuição, produtividade) |
 | `…001200` | `patient_lgpd_export` | `exportar_dados_paciente()` — JSON completo do paciente (LGPD); fica no fim por depender de agenda, prontuário e documentos |
 
 ### 4.1 Projeto Supabase remoto (recomendado)
@@ -230,10 +230,10 @@ personalização livre de `primary`, `accent` e `sidebar`.
 | Área | Rota | Destaques |
 | --- | --- | --- |
 | Dashboard | `/dashboard` | Indicadores do dia, taxa de faltas (30 d), gráficos |
-| Pacientes | `/pacientes` | Busca (nome parcial/CPF), CPF obrigatório com detecção de duplicidade, LGPD, exportação, importação CSV/Excel com mapeamento de colunas |
+| Pacientes | `/pacientes` | Busca (nome parcial/CPF), CPF obrigatório com detecção de duplicidade, consentimento e exportação LGPD, importação CSV/Excel com mapeamento de colunas |
 | Agenda | `/agenda` | Visões dia/semana, tipos de atendimento com cor, detecção de conflito com `GiST`, encaixe com aviso visual, bloqueios |
 | Recepção | `/recepcao` | Fila do dia, check-in, tempo de espera, ordem de chegada |
-| Atendimentos | `/atendimentos` | Prontuário dinâmico por template, rascunho/finalização/cancelamento, evolucoes e adendos (pós-finalização) |
+| Atendimentos | `/atendimentos` | Prontuário dinâmico por template, rascunho/finalização/cancelamento, evoluções e adendos (pós-finalização) |
 | Documentos | `/documentos` | Receita, atestado, solicitação de exames, declaração — PDF imutável após emissão |
 | Templates | `/templates-prontuario` | Templates por especialidade, clonagem, inativação, versionamento |
 | Profissionais | `/profissionais` | Conselhos, especialidades, horários por unidade, cores da agenda |
@@ -246,6 +246,17 @@ personalização livre de `primary`, `accent` e `sidebar`.
 Permissões: 30 ações granulares por papel (`admin_rede`, `gestor_unidade`, `profissional`,
 `recepcao`), aplicadas no menu, nas páginas e em cada rota de API. A Recepção **não** acessa
 conteúdo clínico.
+
+---
+
+### LGPD
+
+- Consentimento registrado por paciente (`consentimento_lgpd`, data e origem).
+- **Exportação dos dados do titular** em JSON (`GET /api/pacientes/{id}/exportar`).
+- **Log de acesso**: toda leitura de prontuário ou exportação de dados grava uma entrada
+  `acao = 'ler'` em `audit_logs` (função `registrar_acesso_prontuario`), visível em
+  `/auditoria`. Pode ser desligado com `AUDIT_LOG_READS=false`.
+- Soft delete em todas as tabelas de negócio — nenhum dado clínico é removido fisicamente.
 
 ---
 

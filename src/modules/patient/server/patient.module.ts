@@ -12,11 +12,14 @@ import { VerificarDuplicidadePacienteUseCase } from '../application/use-cases/ve
 import { ImportarPacientesUseCase } from '../application/use-cases/importar-pacientes/importar-pacientes.use-case';
 import { ExportarDadosPacienteUseCase } from '../application/use-cases/exportar-dados-paciente/exportar-dados-paciente.use-case';
 import { PacienteController } from './api/controllers/paciente.controller';
+import type { RegistrarAcessoProntuario } from '@/modules/audit/domain/services/log-acesso-prontuario.interface';
 
 export type PatientModuleDependencies = {
   supabase: SupabaseClient;
   /** Cliente service_role — usado apenas para gravação do log de acesso LGPD. */
   serviceClient: SupabaseClient;
+  /** Log de leitura/exportação dos dados do titular — LGPD (§5). */
+  logAcessoProntuario: RegistrarAcessoProntuario;
 };
 
 export function createPatientModule(dependencies: PatientModuleDependencies) {
@@ -34,13 +37,20 @@ export function createPatientModule(dependencies: PatientModuleDependencies) {
   });
 
   const listarPacientes = new ListarPacientesUseCase({ pacienteRepository, mapper });
-  const obterPaciente = new ObterPacienteUseCase({ pacienteRepository, mapper });
+  const obterPaciente = new ObterPacienteUseCase({
+    pacienteRepository,
+    mapper,
+    registrarAcesso: dependencies.logAcessoProntuario,
+  });
   const criarPaciente = new CriarPacienteUseCase({ pacienteRepository, mapper });
   const atualizarPaciente = new AtualizarPacienteUseCase({ pacienteRepository, mapper });
   const inativarPaciente = new InativarPacienteUseCase({ pacienteRepository, mapper });
   const verificarDuplicidade = new VerificarDuplicidadePacienteUseCase({ pacienteRepository });
   const importarPacientes = new ImportarPacientesUseCase({ pacienteRepository });
-  const exportarDadosPaciente = new ExportarDadosPacienteUseCase({ pacienteRepository });
+  const exportarDadosPaciente = new ExportarDadosPacienteUseCase({
+    pacienteRepository,
+    registrarAcesso: dependencies.logAcessoProntuario,
+  });
 
   const controller = new PacienteController({
     listarPacientes,

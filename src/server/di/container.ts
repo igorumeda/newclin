@@ -31,7 +31,11 @@ function buildContainer() {
 
   const organization = createOrganizationModule({ supabase, serviceClient });
   const professional = createProfessionalModule({ supabase });
-  const patient = createPatientModule({ supabase, serviceClient });
+  const patient = createPatientModule({
+    supabase,
+    serviceClient,
+    logAcessoProntuario: audit.logAcessoProntuario,
+  });
   const scheduling = createSchedulingModule({
     supabase,
     notification: notification.useCases,
@@ -44,6 +48,7 @@ function buildContainer() {
     serviceClient,
     organizationLookup: organization.lookups,
     audit: audit.useCases.registrarAuditoria,
+    logAcessoProntuario: audit.logAcessoProntuario,
   });
   const clinicalDocument = createClinicalDocumentModule({
     supabase,
