@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { MouseEventHandler } from 'react';
 import { usePathname } from 'next/navigation';
 import { Building2 } from 'lucide-react';
 import { cn } from '@/client/lib/utils';
@@ -8,15 +9,20 @@ import { useAuth } from '@/client/providers/auth-provider';
 import { useOrganizacao } from '@/client/hooks/use-organizacao';
 import { NAVEGACAO, ROTULOS_GRUPO, type ItemNavegacao } from './navegacao';
 
+export type NavigationHref = string;
+export type SidebarNavigateHandler = (href: NavigationHref) => void;
+
 type AppSidebarProps = {
-  aoNavegar?: () => void;
+  aoNavegar?: SidebarNavigateHandler;
+  caminhoAtivo?: string;
   className?: string;
 };
 
 const ORDEM_GRUPOS: ItemNavegacao['grupo'][] = ['operacao', 'clinico', 'gestao'];
 
-export function AppSidebar({ aoNavegar, className }: AppSidebarProps) {
-  const caminho = usePathname();
+export function AppSidebar({ aoNavegar, caminhoAtivo, className }: AppSidebarProps) {
+  const pathname = usePathname();
+  const caminho = caminhoAtivo ?? pathname;
   const { pode } = useAuth();
   const { organizacao } = useOrganizacao();
 
@@ -53,12 +59,19 @@ export function AppSidebar({ aoNavegar, className }: AppSidebarProps) {
               {itensGrupo.map((item) => {
                 const ativo = caminho === item.href || caminho.startsWith(`${item.href}/`);
                 const Icone = item.icone;
+                const aoClicar: MouseEventHandler<HTMLAnchorElement> = (event) => {
+                  if (!aoNavegar || event.defaultPrevented || event.button !== 0
+                    || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                  event.preventDefault();
+                  aoNavegar(item.href);
+                };
 
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
-                    onClick={aoNavegar}
+                    prefetch={true}
+                    onClick={aoClicar}
                     aria-current={ativo ? 'page' : undefined}
                     className={cn(
                       'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
