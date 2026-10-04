@@ -101,7 +101,7 @@ export function AppHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-background/95 px-3 backdrop-blur sm:px-5">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-header-border bg-header/95 px-3 backdrop-blur sm:px-5">
       <Button
         variant="ghost"
         size="icon"

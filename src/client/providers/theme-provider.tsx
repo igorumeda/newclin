@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Tema } from '@/modules/organization/domain/value-objects/tema.vo';
 import type { TemaProps } from '@/modules/organization/domain/value-objects/tema.vo';
 import { organizacaoService } from '../services/organizacao.service';
+import { criarTokensTema } from '../styles/tema-tokens';
 
 export type RedeTema = TemaProps;
 
@@ -18,17 +19,11 @@ function RedeThemeApplier({ tema }: { tema: RedeTema | null }) {
   useEffect(() => {
     const raiz = document.documentElement;
     const atual = tema ? Tema.reconstitute(tema) : Tema.defaultPreset();
-    const light = atual.light;
-    const dark = atual.dark;
-
-    // Os presets usam camelCase; sidebar usa o token de fundo do design system.
-    const paraVariavelCss = (token: string) =>
-      token === 'sidebar'
-        ? '--sidebar-bg'
-        : `--${token.replace(/[A-Z]/g, (letra) => `-${letra.toLowerCase()}`)}`;
+    const light = criarTokensTema({ cores: atual.light, modo: 'light' });
+    const dark = criarTokensTema({ cores: atual.dark, modo: 'dark' });
 
     for (const token of Object.keys(light)) {
-      raiz.style.removeProperty(paraVariavelCss(token));
+      raiz.style.removeProperty(token);
     }
 
     // Ambos os modos ficam no CSS: variáveis inline teriam prioridade sobre .dark.
@@ -40,13 +35,13 @@ function RedeThemeApplier({ tema }: { tema: RedeTema | null }) {
     }
 
     const declaracoesLight = Object.entries(light)
-      .map(([token, valor]) => `${paraVariavelCss(token)}: ${valor};`)
+      .map(([token, valor]) => `${token}: ${valor};`)
       .join(' ');
     const declaracoes = Object.entries(dark)
-      .map(([token, valor]) => `${paraVariavelCss(token)}: ${valor};`)
+      .map(([token, valor]) => `${token}: ${valor};`)
       .join(' ');
 
-    styleTag.textContent = `:root { ${declaracoesLight} } .dark { ${declaracoes} }`;
+    styleTag.textContent = `:root { ${declaracoesLight} } :root.dark { ${declaracoes} }`;
   }, [tema]);
 
   return null;

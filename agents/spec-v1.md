@@ -179,7 +179,9 @@ Entregar um sistema funcional que permita à clínica:
   texto, bordas, sidebar). Não altera tipografia, espaçamentos ou layout.
 - O sistema oferece 10 presets padrão protegidos: Oceano, Jade Suave, Íris,
   Areia Quente, Aurora, Petróleo, Âmbar, Lavanda, Prata e Cobalto.
-  Jade Suave, Areia Quente e Prata têm barra lateral clara nos dois modos.
+  As paletas mantêm a mesma família de cor no claro e no escuro, com
+  superfícies distintas para fundo, cards e menus. Jade Suave, Areia Quente
+  e Prata têm barra lateral pastel no claro e mais suave que o fundo no escuro.
   Eles podem ser aplicados e duplicados, mas não editados. A rede pode
   criar presets próprios e editar livremente as suas cores nos dois modos.
 - Cada rede pode fazer upload do seu **logotipo**, que será exibido na
