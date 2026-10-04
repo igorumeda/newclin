@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Tema } from '../../../domain/value-objects/tema.vo';
 
 export const listarUnidadesRequestSchema = z.object({
   busca: z.string().trim().max(120).optional(),
@@ -22,7 +23,12 @@ const configSchema = z.object({
   agenda: z
     .object({
       intervaloEntreConsultasMinutos: z.coerce.number().int().min(0).max(120).optional(),
-      antecedenciaMinimaCancelamentoHoras: z.coerce.number().int().min(0).max(168).optional(),
+      antecedenciaMinimaCancelamentoHoras: z.coerce
+        .number()
+        .int()
+        .min(0)
+        .max(168)
+        .optional(),
       permitirEncaixe: z.boolean().optional(),
     })
     .optional(),
@@ -47,12 +53,28 @@ export const atualizarOrganizacaoRequestSchema = z.object({
   config: configSchema.optional(),
 });
 
-const coresSchema = z.record(z.string().regex(/^\d{1,3}(\.\d+)?\s+\d{1,3}(\.\d+)?%\s+\d{1,3}(\.\d+)?$/));
+const coresSchema = z.record(z.string().refine(Tema.corValida, 'Cor HSL inválida'));
 
 export const atualizarTemaRequestSchema = z.object({
   preset: z.string().trim().max(40).optional(),
+  novoPreset: z
+    .object({
+      nome: z.string().trim().min(3).max(60),
+      descricao: z.string().trim().max(160).optional(),
+    })
+    .optional(),
   coresLight: coresSchema.optional(),
   coresDark: coresSchema.optional(),
+  editarPreset: z
+    .object({
+      id: z.string().trim().min(1).max(40),
+      nome: z.string().trim().min(3).max(60),
+      descricao: z.string().trim().max(160).optional(),
+      coresLight: coresSchema.optional(),
+      coresDark: coresSchema.optional(),
+    })
+    .optional(),
+  excluirPreset: z.string().trim().min(1).max(40).optional(),
 });
 
 export const criarUnidadeRequestSchema = z.object({
@@ -68,7 +90,9 @@ export const criarUnidadeRequestSchema = z.object({
 
 export const atualizarUnidadeRequestSchema = criarUnidadeRequestSchema.partial();
 
-export type AtualizarOrganizacaoRequestDto = z.infer<typeof atualizarOrganizacaoRequestSchema>;
+export type AtualizarOrganizacaoRequestDto = z.infer<
+  typeof atualizarOrganizacaoRequestSchema
+>;
 export type AtualizarTemaRequestDto = z.infer<typeof atualizarTemaRequestSchema>;
 export type CriarUnidadeRequestDto = z.infer<typeof criarUnidadeRequestSchema>;
 export type AtualizarUnidadeRequestDto = z.infer<typeof atualizarUnidadeRequestSchema>;

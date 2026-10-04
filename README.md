@@ -59,6 +59,12 @@ Onde encontrar cada valor:
 
 Integrações opcionais (o sistema funciona sem elas, registrando as mensagens no log):
 
+Convites de usuários abrem `${NEXT_PUBLIC_APP_URL}/convite`, onde o convidado confirma nome e telefone e define sua senha. No Supabase hospedado, adicione essa URL exata em **Authentication → URL Configuration → Redirect URLs**; mantenha o template **Invite user** com `{{ .ConfirmationURL }}`. Para um template que usa hash diretamente, use `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=invite`. O app também trata convites com tokens no fragmento da URL. Links expirados precisam de um novo convite; o cadastro só pode ser concluído pela identidade convidada e vinculada a uma rede ativa.
+
+A recuperação de senha começa em **Esqueceu sua senha?** no login. Autorize também `${NEXT_PUBLIC_APP_URL}/redefinir-senha` em **Redirect URLs** e mantenha o template **Reset Password** com `{{ .ConfirmationURL }}`. Para um template com hash direto, use `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery`. O Supabase envia o e-mail; a aplicação valida a sessão e altera somente a senha da própria conta, encerra a sessão e retorna ao login. A resposta de solicitação não revela se o e-mail está cadastrado. Referência: [Password-based Auth](https://supabase.com/docs/guides/auth/passwords).
+
+Na validação dos links de convite e recuperação, a origem considera `NEXT_PUBLIC_APP_URL` e o host público da requisição, além da URL interna do servidor. Ao usar proxy HTTPS, preserve o cabeçalho `Host` e envie `X-Forwarded-Proto: https`. Isso evita rejeitar links legítimos quando o servidor Next.js usa internamente `http://0.0.0.0:3000`.
+
 - **SMTP** (`SMTP_*`) — envio de confirmações, lembretes e documentos por e-mail.
 - **WhatsApp** (`WHATSAPP_*`) — `WHATSAPP_PROVIDER=noop` em desenvolvimento; `meta`,
   `zapi`, `twilio` ou `360dialog` em produção. O webhook fica em

@@ -3,14 +3,11 @@
 import { useEffect, type ReactNode } from 'react';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
 import { useQuery } from '@tanstack/react-query';
-import { TEMA_PRESETS } from '@/modules/organization/domain/value-objects/tema.vo';
+import { Tema } from '@/modules/organization/domain/value-objects/tema.vo';
+import type { TemaProps } from '@/modules/organization/domain/value-objects/tema.vo';
 import { organizacaoService } from '../services/organizacao.service';
 
-export type RedeTema = {
-  preset: string;
-  light: Record<string, string>;
-  dark: Record<string, string>;
-};
+export type RedeTema = TemaProps;
 
 /**
  * Tema por rede (§3.7) aplicado em runtime: apenas as cores mudam — tipografia,
@@ -20,20 +17,21 @@ export type RedeTema = {
 function RedeThemeApplier({ tema }: { tema: RedeTema | null }) {
   useEffect(() => {
     const raiz = document.documentElement;
-    const preset = TEMA_PRESETS.find((item) => item.id === tema?.preset) ?? TEMA_PRESETS[0];
+    const atual = tema ? Tema.reconstitute(tema) : Tema.defaultPreset();
+    const light = atual.light;
+    const dark = atual.dark;
 
-    const light = { ...preset.light, ...(tema?.light ?? {}) };
-    const dark = { ...preset.dark, ...(tema?.dark ?? {}) };
+    // Os presets usam camelCase; sidebar usa o token de fundo do design system.
+    const paraVariavelCss = (token: string) =>
+      token === 'sidebar'
+        ? '--sidebar-bg'
+        : `--${token.replace(/[A-Z]/g, (letra) => `-${letra.toLowerCase()}`)}`;
 
-    // Os presets usam camelCase (primaryForeground) e o CSS usa kebab-case.
-    const paraVariavelCss = (token: string) => `--${token.replace(/[A-Z]/g, (letra) => `-${letra.toLowerCase()}`)}`;
-
-    for (const [token, valor] of Object.entries(light)) {
-      raiz.style.setProperty(paraVariavelCss(token), valor);
+    for (const token of Object.keys(light)) {
+      raiz.style.removeProperty(paraVariavelCss(token));
     }
 
-    // O modo escuro é aplicado pela classe `.dark`; as variáveis do tema escuro
-    // são gravadas em um bloco <style> para valerem apenas nesse modo.
+    // Ambos os modos ficam no CSS: variáveis inline teriam prioridade sobre .dark.
     let styleTag = document.getElementById('rede-tema-dark') as HTMLStyleElement | null;
     if (!styleTag) {
       styleTag = document.createElement('style');
@@ -41,11 +39,14 @@ function RedeThemeApplier({ tema }: { tema: RedeTema | null }) {
       document.head.appendChild(styleTag);
     }
 
+    const declaracoesLight = Object.entries(light)
+      .map(([token, valor]) => `${paraVariavelCss(token)}: ${valor};`)
+      .join(' ');
     const declaracoes = Object.entries(dark)
       .map(([token, valor]) => `${paraVariavelCss(token)}: ${valor};`)
       .join(' ');
 
-    styleTag.textContent = `.dark { ${declaracoes} }`;
+    styleTag.textContent = `:root { ${declaracoesLight} } .dark { ${declaracoes} }`;
   }, [tema]);
 
   return null;
@@ -53,7 +54,12 @@ function RedeThemeApplier({ tema }: { tema: RedeTema | null }) {
 
 export function AppThemeProvider({ children }: { children: ReactNode }) {
   return (
-    <NextThemesProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
       <RedeThemeApplierBridge>{children}</RedeThemeApplierBridge>
     </NextThemesProvider>
   );

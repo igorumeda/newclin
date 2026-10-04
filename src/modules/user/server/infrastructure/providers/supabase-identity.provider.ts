@@ -35,14 +35,18 @@ export class SupabaseIdentityProvider extends IdentityProvider {
         email_confirm: true,
         user_metadata: metadata,
       });
-      if (error) throw this.translateError({ message: error.message, email: params.email });
+      if (error)
+        throw this.translateError({ message: error.message, email: params.email });
       return { authUserId: data.user.id, conviteEnviado: false };
     }
 
-    const { data, error } = await this.serviceClient.auth.admin.inviteUserByEmail(params.email, {
-      data: metadata,
-      redirectTo: params.redirectTo,
-    });
+    const { data, error } = await this.serviceClient.auth.admin.inviteUserByEmail(
+      params.email,
+      {
+        data: metadata,
+        redirectTo: params.redirectTo,
+      },
+    );
 
     if (error || !data?.user) {
       throw this.translateError({
@@ -69,10 +73,16 @@ export class SupabaseIdentityProvider extends IdentityProvider {
       profissionalId: params.profissionalId ?? null,
     });
 
-    const { error } = await this.serviceClient.auth.admin.updateUserById(params.authUserId, {
-      ...attributes,
-      user_metadata: metadata,
-    });
+    const { error } = await this.serviceClient.auth.admin.updateUserById(
+      params.authUserId,
+      {
+        ...attributes,
+        user_metadata: metadata,
+        ...(params.cadastroConcluido
+          ? { app_metadata: { cadastro_concluido: true } }
+          : {}),
+      },
+    );
 
     if (error) {
       throw new Error(`Falha ao atualizar credenciais: ${error.message}`);
@@ -98,7 +108,11 @@ export class SupabaseIdentityProvider extends IdentityProvider {
 
   private translateError(params: { message: string; email: string }): Error {
     const normalized = params.message.toLowerCase();
-    if (normalized.includes('already') || normalized.includes('registered') || normalized.includes('exists')) {
+    if (
+      normalized.includes('already') ||
+      normalized.includes('registered') ||
+      normalized.includes('exists')
+    ) {
       return new EmailAlreadyInUseError({ email: params.email });
     }
     if (normalized.includes('rate limit')) {

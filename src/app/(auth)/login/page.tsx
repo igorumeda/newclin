@@ -11,8 +11,21 @@ import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/client/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/client/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/client/ui/form';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/client/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/client/ui/form';
 import { Input } from '@/client/ui/input';
 import { authService } from '@/client/services/auth.service';
 import { ApiError } from '@/client/services/api-client.service';
@@ -37,7 +50,10 @@ function LoginPageInterno() {
 
   async function aoEnviar(dados: FormularioLogin) {
     try {
-      const resposta = await authService.login({ email: dados.email.toLowerCase(), senha: dados.senha });
+      const resposta = await authService.login({
+        email: dados.email.toLowerCase(),
+        senha: dados.senha,
+      });
       queryClient.setQueryData(['auth', 'perfil'], {
         usuario: resposta.usuario,
         permissoes: resposta.permissoes,
@@ -49,7 +65,9 @@ function LoginPageInterno() {
       router.refresh();
     } catch (erro) {
       const mensagem =
-        erro instanceof ApiError ? erro.message : 'Não foi possível entrar. Tente novamente.';
+        erro instanceof ApiError
+          ? erro.message
+          : 'Não foi possível entrar. Tente novamente.';
       toast.error(mensagem);
       form.setError('senha', { message: mensagem });
     }
@@ -59,7 +77,9 @@ function LoginPageInterno() {
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle className="text-xl">Entrar na plataforma</CardTitle>
-        <CardDescription>Acesse com o e-mail cadastrado pela administração da rede.</CardDescription>
+        <CardDescription>
+          Acesse com o e-mail cadastrado pela administração da rede.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -105,7 +125,11 @@ function LoginPageInterno() {
                         className="absolute right-1 top-1/2 -translate-y-1/2 rounded-md p-2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
                       >
-                        {mostrarSenha ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                        {mostrarSenha ? (
+                          <EyeOff className="size-4" />
+                        ) : (
+                          <Eye className="size-4" />
+                        )}
                       </button>
                     </div>
                   </FormControl>
@@ -114,7 +138,19 @@ function LoginPageInterno() {
               )}
             />
 
-            <Button type="submit" className="w-full" carregando={form.formState.isSubmitting}>
+            <div className="flex justify-end">
+              <Link
+                href="/esqueci-senha"
+                className="text-sm text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                Esqueceu sua senha?
+              </Link>
+            </div>
+            <Button
+              type="submit"
+              className="w-full"
+              carregando={form.formState.isSubmitting}
+            >
               <LogIn aria-hidden />
               Entrar
             </Button>
@@ -129,7 +165,10 @@ function LoginPageInterno() {
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Problemas de acesso? Fale com o administrador da sua rede. <br />
-          <Link href="/politica-de-privacidade" className="underline underline-offset-2 hover:text-foreground">
+          <Link
+            href="/politica-de-privacidade"
+            className="underline underline-offset-2 hover:text-foreground"
+          >
             Política de privacidade e LGPD
           </Link>
         </p>

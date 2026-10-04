@@ -1,5 +1,8 @@
 import { ValueObject } from '@core/domain/value-object.base';
 import { Result } from '@core/domain/result';
+import { TemaInvalidoError } from '../errors/tema-invalido.error';
+import { TEMA_PRESETS } from './tema-presets';
+export { TEMA_PRESETS } from './tema-presets';
 
 /**
  * Tema visual da rede (§3.7).
@@ -24,100 +27,33 @@ export type TemaProps = {
   preset: string;
   light: TemaCores;
   dark: TemaCores;
+  presetsPersonalizados?: TemaPreset[];
 };
+
+export type NovoTemaPreset = { nome: string; descricao?: string };
+export type EditarTemaPreset = NovoTemaPreset & {
+  id: string;
+  coresLight?: Partial<TemaCores>;
+  coresDark?: Partial<TemaCores>;
+};
+export type AtualizarTemaParams = {
+  preset?: string;
+  coresLight?: Partial<TemaCores>;
+  coresDark?: Partial<TemaCores>;
+  novoPreset?: NovoTemaPreset;
+  editarPreset?: EditarTemaPreset;
+  excluirPreset?: string;
+};
+type PresetId = string;
+type CorHsl = string;
 
 export type TemaPreset = {
   id: string;
   nome: string;
   descricao: string;
-  light: Pick<TemaCores, 'primary' | 'primaryForeground' | 'accent' | 'accentForeground' | 'sidebar'>;
-  dark: Pick<TemaCores, 'primary' | 'primaryForeground' | 'accent' | 'accentForeground' | 'sidebar'>;
+  light: TemaCores;
+  dark: TemaCores;
 };
-
-const NEUTRAS: Omit<TemaCores, 'primary' | 'primaryForeground' | 'secondary' | 'secondaryForeground' | 'accent' | 'accentForeground' | 'sidebar' | 'sidebarForeground'> = {
-  background: '0 0% 100%',
-  foreground: '222.2 84% 4.9%',
-  border: '214.3 31.8% 91.4%',
-};
-
-export const TEMA_PRESETS: TemaPreset[] = [
-  {
-    id: 'azul-saude',
-    nome: 'Azul Saúde',
-    descricao: 'Padrão do sistema — transmite confiança e limpeza.',
-    light: {
-      primary: '199 89% 48%',
-      primaryForeground: '210 40% 98%',
-      accent: '199 89% 95%',
-      accentForeground: '222.2 47.4% 11.2%',
-      sidebar: '222.2 84% 4.9%',
-    },
-    dark: {
-      primary: '199 89% 55%',
-      primaryForeground: '222.2 47.4% 11.2%',
-      accent: '217.2 32.6% 17.5%',
-      accentForeground: '210 40% 98%',
-      sidebar: '224 71% 4%',
-    },
-  },
-  {
-    id: 'verde-clinico',
-    nome: 'Verde Clínico',
-    descricao: 'Sensação de saúde, equilíbrio e bem-estar.',
-    light: {
-      primary: '152 60% 40%',
-      primaryForeground: '0 0% 100%',
-      accent: '152 60% 95%',
-      accentForeground: '222.2 47.4% 11.2%',
-      sidebar: '160 40% 12%',
-    },
-    dark: {
-      primary: '152 55% 50%',
-      primaryForeground: '160 40% 8%',
-      accent: '160 25% 18%',
-      accentForeground: '0 0% 98%',
-      sidebar: '160 40% 8%',
-    },
-  },
-  {
-    id: 'roxo-cuidado',
-    nome: 'Roxo Cuidado',
-    descricao: 'Identidade acolhedora para clínicas especializadas.',
-    light: {
-      primary: '262 83% 58%',
-      primaryForeground: '210 40% 98%',
-      accent: '262 83% 96%',
-      accentForeground: '222.2 47.4% 11.2%',
-      sidebar: '263 60% 15%',
-    },
-    dark: {
-      primary: '263 70% 62%',
-      primaryForeground: '222.2 47.4% 11.2%',
-      accent: '263 30% 20%',
-      accentForeground: '0 0% 98%',
-      sidebar: '263 60% 8%',
-    },
-  },
-  {
-    id: 'escuro-profundo',
-    nome: 'Escuro Profundo',
-    descricao: 'Alto contraste, indicado para ambientes com pouca luz.',
-    light: {
-      primary: '222.2 47.4% 11.2%',
-      primaryForeground: '210 40% 98%',
-      accent: '210 40% 94%',
-      accentForeground: '222.2 47.4% 11.2%',
-      sidebar: '222.2 47.4% 11.2%',
-    },
-    dark: {
-      primary: '210 40% 96%',
-      primaryForeground: '222.2 47.4% 11.2%',
-      accent: '217.2 32.6% 20%',
-      accentForeground: '210 40% 98%',
-      sidebar: '222.2 84% 3%',
-    },
-  },
-];
 
 const HSL_PATTERN = /^\d{1,3}(\.\d+)?\s+\d{1,3}(\.\d+)?%\s+\d{1,3}(\.\d+)?%$/;
 
@@ -137,80 +73,255 @@ export class Tema extends ValueObject<TemaProps> {
   }
 
   public toJSON(): TemaProps {
-    return { preset: this.props.preset, light: { ...this.props.light }, dark: { ...this.props.dark } };
+    return {
+      preset: this.props.preset,
+      light: this.light,
+      dark: this.dark,
+      presetsPersonalizados: this.presetsPersonalizados,
+    };
+  }
+
+  get presetsPersonalizados(): TemaPreset[] {
+    return (this.props.presetsPersonalizados ?? []).map((item) => ({
+      ...item,
+      light: { ...item.light },
+      dark: { ...item.dark },
+    }));
+  }
+
+  public selecionarPreset(id: PresetId): Result<Tema> {
+    const personalizado = this.presetsPersonalizados.find((item) => item.id === id);
+    const base = personalizado
+      ? Tema.create({
+          preset: id,
+          light: { ...Tema.defaultPreset().light, ...personalizado.light },
+          dark: { ...Tema.defaultPreset().dark, ...personalizado.dark },
+        })
+      : Tema.fromPreset(id);
+    if (base.isFailure) return Result.fail(base.error);
+    return Tema.create({
+      ...base.value.toJSON(),
+      presetsPersonalizados: this.presetsPersonalizados,
+    });
+  }
+
+  public atualizar(params: AtualizarTemaParams): Result<Tema> {
+    if (params.editarPreset && params.excluirPreset)
+      return Result.fail(new TemaInvalidoError({ reason: 'Escolha uma ação por vez.' }));
+    if (params.excluirPreset) return this.excluirPreset(params.excluirPreset);
+    if (params.editarPreset) return this.editarPreset(params.editarPreset);
+    const base = params.preset ? this.selecionarPreset(params.preset) : Result.ok(this);
+    if (base.isFailure) return Result.fail(base.error);
+    const light = { ...base.value.light, ...params.coresLight };
+    const dark = { ...base.value.dark, ...params.coresDark };
+    const mudou =
+      Object.entries(light).some(
+        ([token, cor]) => cor !== base.value.light[token as keyof TemaCores],
+      ) ||
+      Object.entries(dark).some(
+        ([token, cor]) => cor !== base.value.dark[token as keyof TemaCores],
+      );
+    if (!params.novoPreset && mudou && !base.value.editavel) {
+      return Result.fail(
+        new TemaInvalidoError({
+          reason:
+            'Os presets do sistema são protegidos. Duplique o preset para editar suas cores.',
+        }),
+      );
+    }
+    const atualizado = Tema.create({
+      ...base.value.toJSON(),
+      light,
+      dark,
+    });
+    if (atualizado.isFailure) return atualizado;
+    if (params.novoPreset) return atualizado.value.salvarComoPreset(params.novoPreset);
+    return Tema.create({
+      ...atualizado.value.toJSON(),
+      presetsPersonalizados: atualizado.value.presetsPersonalizados.map((item) =>
+        item.id === atualizado.value.preset ? { ...item, light, dark } : item,
+      ),
+    });
+  }
+
+  get editavel(): boolean {
+    return (
+      !Tema.presetDoSistema(this.preset) &&
+      this.presetsPersonalizados.some((item) => item.id === this.preset)
+    );
+  }
+
+  public editarPreset(params: EditarTemaPreset): Result<Tema> {
+    const origem = this.presetsPersonalizados.find((item) => item.id === params.id);
+    if (Tema.presetDoSistema(params.id) || !origem)
+      return Result.fail(
+        new TemaInvalidoError({
+          reason: 'Somente presets personalizados da rede podem ser editados.',
+        }),
+      );
+    // Reutiliza a validação de nome e descrição, desconsiderando o próprio preset.
+    const validacao = Tema.create({
+      ...this.toJSON(),
+      presetsPersonalizados: this.presetsPersonalizados.filter(
+        (item) => item.id !== params.id,
+      ),
+    });
+    if (validacao.isFailure) return validacao;
+    const nome = validacao.value.salvarComoPreset(params);
+    if (nome.isFailure) return nome;
+    const atualizado = {
+      ...origem,
+      nome: params.nome.trim(),
+      descricao: params.descricao?.trim() ?? '',
+      light: { ...origem.light, ...params.coresLight },
+      dark: { ...origem.dark, ...params.coresDark },
+    };
+    const cores = Tema.create({
+      ...this.toJSON(),
+      light: atualizado.light,
+      dark: atualizado.dark,
+    });
+    if (cores.isFailure) return cores;
+    return Tema.create({
+      ...this.toJSON(),
+      ...(this.preset === params.id
+        ? { light: atualizado.light, dark: atualizado.dark }
+        : {}),
+      presetsPersonalizados: this.presetsPersonalizados.map((item) =>
+        item.id === params.id ? atualizado : item,
+      ),
+    });
+  }
+
+  public excluirPreset(id: PresetId): Result<Tema> {
+    if (
+      Tema.presetDoSistema(id) ||
+      !this.presetsPersonalizados.some((item) => item.id === id)
+    )
+      return Result.fail(
+        new TemaInvalidoError({
+          reason: 'Somente presets personalizados da rede podem ser excluídos.',
+        }),
+      );
+    const restantes = this.presetsPersonalizados.filter((item) => item.id !== id);
+    return Tema.create({
+      ...(this.preset === id ? Tema.defaultPreset().toJSON() : this.toJSON()),
+      presetsPersonalizados: restantes,
+    });
+  }
+
+  public static presetDoSistema(id: PresetId): boolean {
+    return TEMA_PRESETS.some((item) => item.id === id);
+  }
+
+  public salvarComoPreset(params: NovoTemaPreset): Result<Tema> {
+    const nome = params.nome.trim();
+    const descricao = params.descricao?.trim() ?? '';
+    const slug = nome
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+      .slice(0, 35);
+    const id = `rede-${slug}`;
+    const existentes = [...TEMA_PRESETS, ...this.presetsPersonalizados];
+    if (nome.length < 3 || nome.length > 60 || !slug || descricao.length > 160) {
+      return Result.fail(
+        new TemaInvalidoError({
+          reason:
+            'Informe um nome entre 3 e 60 caracteres e uma descrição de até 160 caracteres.',
+        }),
+      );
+    }
+    if (
+      existentes.some(
+        (item) => item.id === id || item.nome.toLowerCase() === nome.toLowerCase(),
+      )
+    ) {
+      return Result.fail(
+        new TemaInvalidoError({
+          reason: 'Já existe um preset com esse nome. Escolha outro nome.',
+        }),
+      );
+    }
+    const novo: TemaPreset = { id, nome, descricao, light: this.light, dark: this.dark };
+    return Tema.create({
+      ...this.toJSON(),
+      preset: id,
+      presetsPersonalizados: [...this.presetsPersonalizados, novo],
+    });
+  }
+
+  public static corValida(valor: CorHsl): boolean {
+    if (!HSL_PATTERN.test(valor)) return false;
+    const [h, s, l] = valor.replace(/%/g, '').split(/\s+/).map(Number);
+    return h >= 0 && h <= 360 && s >= 0 && s <= 100 && l >= 0 && l <= 100;
   }
 
   public static defaultPreset(): Tema {
     const preset = TEMA_PRESETS[0];
     return new Tema({
       preset: preset.id,
-      light: {
-        ...NEUTRAS,
-        secondary: '210 40% 96.1%',
-        secondaryForeground: '222.2 47.4% 11.2%',
-        ...preset.light,
-        sidebarForeground: '210 40% 98%',
-      },
-      dark: {
-        background: '222.2 84% 4.9%',
-        foreground: '210 40% 98%',
-        border: '217.2 32.6% 17.5%',
-        secondary: '217.2 32.6% 17.5%',
-        secondaryForeground: '210 40% 98%',
-        ...preset.dark,
-        sidebarForeground: '210 40% 98%',
-      },
+      light: { ...preset.light },
+      dark: { ...preset.dark },
     });
   }
 
-  public static fromPreset(presetId: string): Result<Tema> {
+  public static fromPreset(presetId: PresetId): Result<Tema> {
     const preset = TEMA_PRESETS.find((item) => item.id === presetId);
     if (!preset) {
-      return Result.fail(new Error(`Preset de tema inválido: "${presetId}"`));
+      return Result.fail(
+        new TemaInvalidoError({ reason: `Preset de tema inválido: "${presetId}"` }),
+      );
     }
 
     return Result.ok(
       new Tema({
         preset: preset.id,
-        light: {
-          ...NEUTRAS,
-          secondary: '210 40% 96.1%',
-          secondaryForeground: '222.2 47.4% 11.2%',
-          ...preset.light,
-          sidebarForeground: '210 40% 98%',
-        },
-        dark: {
-          background: '222.2 84% 4.9%',
-          foreground: '210 40% 98%',
-          border: '217.2 32.6% 17.5%',
-          secondary: '217.2 32.6% 17.5%',
-          secondaryForeground: '210 40% 98%',
-          ...preset.dark,
-          sidebarForeground: '210 40% 98%',
-        },
+        light: { ...preset.light },
+        dark: { ...preset.dark },
       }),
     );
   }
 
   public static create(props: TemaProps): Result<Tema> {
-    const cores = [
-      ...Object.entries(props.light),
-      ...Object.entries(props.dark),
-    ];
+    const cores = [...Object.entries(props.light), ...Object.entries(props.dark)];
 
-    const invalida = cores.find(([, valor]) => !HSL_PATTERN.test(String(valor)));
+    const invalida = cores.find(([, valor]) => !Tema.corValida(String(valor)));
     if (invalida) {
       return Result.fail(
-        new Error(
-          `Cor inválida em "${invalida[0]}": use o formato HSL "H S% L%" (ex.: "199 89% 48%")`,
-        ),
+        new TemaInvalidoError({
+          reason: `Cor inválida em "${invalida[0]}": use o formato HSL "H S% L%" (ex.: "199 89% 48%")`,
+        }),
       );
     }
 
-    return Result.ok(new Tema(props));
+    return Result.ok(
+      new Tema({
+        ...props,
+        light: { ...props.light },
+        dark: { ...props.dark },
+        presetsPersonalizados: (props.presetsPersonalizados ?? []).map((item) => ({
+          ...item,
+          light: { ...item.light },
+          dark: { ...item.dark },
+        })),
+      }),
+    );
   }
 
   public static reconstitute(props: TemaProps): Tema {
-    return new Tema(props);
+    const sistema = TEMA_PRESETS.find((item) => item.id === props.preset);
+    const personalizado = props.presetsPersonalizados?.some(
+      (item) => item.id === props.preset,
+    );
+    // Temas antigos passam ao novo padrão; presets criados pela rede são preservados.
+    const base = sistema ?? (!personalizado ? TEMA_PRESETS[0] : null);
+    return new Tema(
+      base
+        ? { ...props, preset: base.id, light: { ...base.light }, dark: { ...base.dark } }
+        : props,
+    );
   }
 }

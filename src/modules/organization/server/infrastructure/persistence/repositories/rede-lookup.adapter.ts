@@ -1,7 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { IRedeLookup, RedeResumo } from '../../../../domain/services/rede-lookup.interface';
+import type {
+  IRedeLookup,
+  RedeResumo,
+} from '../../../../domain/services/rede-lookup.interface';
 import { REDE_COLUMNS } from '../models/organizacao.models';
 import type { RedeModel } from '../models/organizacao.models';
+import { Tema } from '../../../../domain/value-objects/tema.vo';
 
 export type RedeLookupAdapterDependencies = {
   supabase: SupabaseClient;
@@ -25,11 +29,7 @@ export class RedeLookupAdapter implements IRedeLookup {
 
     if (!data) return null;
 
-    const tema = (data.tema ?? {}) as {
-      preset?: string;
-      light?: Record<string, string>;
-      dark?: Record<string, string>;
-    };
+    const tema = data.tema ? Tema.reconstitute(data.tema) : Tema.defaultPreset();
 
     return {
       id: data.id,
@@ -40,9 +40,9 @@ export class RedeLookupAdapter implements IRedeLookup {
       email: data.email,
       logotipoUrl: data.logotipo_url,
       tema: {
-        preset: tema.preset ?? 'azul-saude',
-        light: tema.light ?? {},
-        dark: tema.dark ?? {},
+        preset: tema.preset,
+        light: tema.light,
+        dark: tema.dark,
       },
     };
   }

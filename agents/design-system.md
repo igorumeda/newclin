@@ -549,6 +549,30 @@ Cada sistema pode customizar a cor primária alterando **apenas** o token `--pri
 
 ---
 
+### 5.4 Identidade visual da rede
+
+O formulário de conclusão de convite usa o layout público de autenticação e um card com nome, telefone opcional, e-mail somente leitura e senha com confirmação. Apresente estados de validação do link, link inválido/expirado e erros por campo. O botão **Concluir cadastro** usa o estado compartilhado de carregamento. Após salvar, retorne ao login com confirmação.
+
+O login apresenta **Esqueceu sua senha?** após o campo de senha. A recuperação usa o mesmo layout público, com um card para solicitar o link e outro para definir e confirmar a nova senha. Mostre confirmação genérica do envio, carregamento, erros por campo e ação **Solicitar novo link** para links inválidos ou expirados. A senha segue o Value Object compartilhado `Senha`, também utilizado no convite. Após salvar, retorne ao login com confirmação.
+
+Na tela de redefinição, agrupe **Solicitar novo link** e **Voltar ao login** com `flex flex-wrap gap-x-4 gap-y-2`, mantendo espaçamento entre as ações também em telas pequenas.
+
+O catálogo padrão contém exatamente dez presets protegidos: Oceano, Jade Suave, Íris, Areia Quente, Aurora, Petróleo, Âmbar, Lavanda, Prata e Cobalto. Jade Suave, Areia Quente e Prata usam barra lateral clara com texto escuro nos dois modos; os demais usam barra lateral escura. Os identificadores de Jade, Terracota e Grafite são preservados para manter as seleções já salvas. Cada combinação define todos os tokens editáveis nos modos claro e escuro. As referências de composição são as escalas e superfícies do [Geist](https://vercel.com/geist/colors) e a [paleta do Atlassian Design](https://atlassian.design/foundations/color/color-palette/), adaptadas ao sistema.
+
+Identifique cada preset como **Padrão do sistema** ou **Preset da rede**. Os presets padrão podem ser aplicados e duplicados, mas seus seletores de cores ficam desabilitados. Para personalizar, o administrador cria ou duplica um preset da rede. Ao salvar as cores de um preset próprio, atualize a sua combinação persistida; ao criar uma cópia, preserve o original. A camada de domínio também rejeita alterações diretas nos presets padrão pela API.
+
+Na tela de configurações, use o componente compartilhado `ColorPicker` para escolher cores. A amostra abre o seletor nativo, tem rótulo associado e apresenta o valor hexadecimal; a conversão para os tokens HSL ocorre automaticamente. Disponibilize controles separados para os modos claro e escuro e desabilite a edição sem permissão ou durante o salvamento.
+
+O administrador pode salvar a combinação atual como um novo preset, com nome obrigatório de 3 a 60 caracteres e descrição opcional de até 160 caracteres. O nome não pode repetir um preset disponível. Criar um preset salva e aplica as cores à rede; os presets personalizados continuam disponíveis ao selecionar outro preset e ao recarregar a página.
+
+Presets personalizados pertencem à rede e ficam no JSON do tema, junto às cores dos dois modos. Eles alteram somente os tokens de identidade visual; tipografia, espaçamento, layout e cores semânticas de estados seguem este documento. O fundo da barra lateral usa `--sidebar-bg`; aplique as variáveis dos modos em regras `:root` e `.dark` para preservar a alternância de tema.
+
+Cada preset, inicial ou personalizado, oferece a ação **Duplicar**. Abra o formulário com nome sugerido e descrição preenchida, copiando as cores salvas dos dois modos do preset de origem. O administrador pode ajustar o nome antes de salvar e aplicar a cópia; cancelar mantém a seleção e os ajustes em andamento. A ação de duplicar fica separada do botão de selecionar o preset, com rótulo acessível que identifica a origem.
+
+Separe o catálogo pelos títulos **Presets padrão do sistema** e **Presets personalizados**. Nos personalizados, ofereça **Editar** (nome, descrição e cores dos dois modos) e **Excluir**, com confirmação. Editar um preset que não está aplicado mantém o tema ativo; editar o preset ativo atualiza a identidade visual. Excluir o preset ativo aplica Oceano, preservando os demais presets personalizados. Essas ações são restritas ao administrador da rede e validadas no domínio.
+
+---
+
 ## 6. Espaçamentos e Layout
 
 ### 6.1 Grid Base

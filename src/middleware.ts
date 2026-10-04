@@ -4,10 +4,24 @@ import type { CookieOptions } from '@supabase/ssr';
 
 type CookieParaDefinir = { name: string; value: string; options?: CookieOptions };
 
-const ROTAS_PUBLICAS = ['/login', '/configuracao-pendente', '/api/auth/login', '/api/webhooks'];
+const ROTAS_PUBLICAS = [
+  '/login',
+  '/convite',
+  '/esqueci-senha',
+  '/redefinir-senha',
+  '/configuracao-pendente',
+  '/api/auth/login',
+  '/api/auth/convite',
+  '/api/auth/recuperar-senha',
+  '/api/auth/redefinir-senha',
+  '/api/auth/logout',
+  '/api/webhooks',
+];
 
 function isPublica(caminho: string): boolean {
-  return ROTAS_PUBLICAS.some((rota) => caminho === rota || caminho.startsWith(`${rota}/`));
+  return ROTAS_PUBLICAS.some(
+    (rota) => caminho === rota || caminho.startsWith(`${rota}/`),
+  );
 }
 
 function supabaseConfigurado(): boolean {
@@ -50,6 +64,26 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const caminho = request.nextUrl.pathname;
+  const cadastroPendente = Boolean(
+    user?.invited_at && user.app_metadata.cadastro_concluido !== true,
+  );
+
+  if (user && cadastroPendente && !isPublica(caminho)) {
+    if (caminho.startsWith('/api/'))
+      return NextResponse.json(
+        {
+          error: {
+            code: 'CADASTRO_PENDENTE',
+            message: 'Conclua seu cadastro para acessar a plataforma.',
+          },
+        },
+        { status: 403 },
+      );
+    const url = request.nextUrl.clone();
+    url.pathname = '/convite';
+    url.search = '';
+    return NextResponse.redirect(url);
+  }
 
   if (!user && !isPublica(caminho)) {
     const url = request.nextUrl.clone();
@@ -60,7 +94,7 @@ export async function middleware(request: NextRequest) {
 
   if (user && caminho === '/login') {
     const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
+    url.pathname = cadastroPendente ? '/convite' : '/dashboard';
     url.search = '';
     return NextResponse.redirect(url);
   }
@@ -69,5 +103,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+  ],
 };

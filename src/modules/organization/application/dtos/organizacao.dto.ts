@@ -4,7 +4,12 @@
  * `CriarUnidadeInputDto`, ...), declarados neste arquivo para manter a
  * proximidade do contrato sem multiplicar arquivos triviais.
  */
-import type { TemaCores, TemaPreset } from '../../domain/value-objects/tema.vo';
+import type {
+  TemaCores,
+  TemaPreset,
+  NovoTemaPreset,
+  EditarTemaPreset,
+} from '../../domain/value-objects/tema.vo';
 import type { RedeConfig, RedeConfigParcial } from '../../domain/entities/rede.entity';
 import type { EnderecoProps } from '../../domain/value-objects/endereco.vo';
 
@@ -15,6 +20,7 @@ export type TemaDto = {
   preset: string;
   light: TemaCores;
   dark: TemaCores;
+  presetsPersonalizados?: TemaPreset[];
 };
 
 export type OrganizacaoDto = {
@@ -51,6 +57,9 @@ export type AtualizarTemaInputDto = {
   preset?: string;
   coresLight?: Partial<TemaCores>;
   coresDark?: Partial<TemaCores>;
+  novoPreset?: NovoTemaPreset;
+  editarPreset?: EditarTemaPreset;
+  excluirPreset?: string;
 };
 
 export type AtualizarTemaOutputDto = { tema: TemaDto; presets: TemaPreset[] };
@@ -66,7 +75,10 @@ export type DefinirLogotipoInputDto = {
   remover?: boolean;
 };
 
-export type DefinirLogotipoOutputDto = { logotipoUrl: string | null; logotipoPath: string | null };
+export type DefinirLogotipoOutputDto = {
+  logotipoUrl: string | null;
+  logotipoPath: string | null;
+};
 
 // ── Unidades ────────────────────────────────────────────────────────────────
 export type UnidadeDto = {

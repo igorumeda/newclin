@@ -30,6 +30,7 @@ export type AtualizarCredenciaisParams = {
   unidadesAcesso?: string[];
   profissionalId?: string | null;
   senha?: string;
+  cadastroConcluido?: boolean;
 };
 
 export interface IIdentityProvider {

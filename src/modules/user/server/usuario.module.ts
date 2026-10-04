@@ -11,6 +11,7 @@ import { InativarUsuarioUseCase } from '../application/use-cases/inativar-usuari
 import { ReativarUsuarioUseCase } from '../application/use-cases/reativar-usuario/reativar-usuario.use-case';
 import { ObterPerfilAtualUseCase } from '../application/use-cases/obter-perfil-atual/obter-perfil-atual.use-case';
 import { UsuarioController } from './api/controllers/usuario.controller';
+import { ConcluirCadastroUseCase } from '../application/use-cases/concluir-cadastro/concluir-cadastro.use-case';
 
 export type UsuarioModuleDependencies = {
   supabase: SupabaseClient;
@@ -37,10 +38,22 @@ export function createUsuarioModule(dependencies: UsuarioModuleDependencies) {
 
   const listarUsuarios = new ListarUsuariosUseCase({ usuarioRepository, mapper });
   const obterPerfilAtual = new ObterPerfilAtualUseCase({ usuarioRepository, mapper });
-  const criarUsuario = new CriarUsuarioUseCase({ usuarioRepository, identityProvider, mapper });
-  const atualizarUsuario = new AtualizarUsuarioUseCase({ usuarioRepository, identityProvider, mapper });
+  const criarUsuario = new CriarUsuarioUseCase({
+    usuarioRepository,
+    identityProvider,
+    mapper,
+  });
+  const atualizarUsuario = new AtualizarUsuarioUseCase({
+    usuarioRepository,
+    identityProvider,
+    mapper,
+  });
   const inativarUsuario = new InativarUsuarioUseCase({ usuarioRepository, mapper });
   const reativarUsuario = new ReativarUsuarioUseCase({ usuarioRepository, mapper });
+  const concluirCadastro = new ConcluirCadastroUseCase({
+    usuarioRepository,
+    identityProvider,
+  });
 
   const controller = new UsuarioController({
     listarUsuarios,
@@ -61,6 +74,7 @@ export function createUsuarioModule(dependencies: UsuarioModuleDependencies) {
       atualizarUsuario,
       inativarUsuario,
       reativarUsuario,
+      concluirCadastro,
     },
   };
 }

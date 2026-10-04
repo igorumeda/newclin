@@ -1,10 +1,16 @@
 import type {
   AtualizarOrganizacaoInputDto,
-  AtualizarTemaInputDto,
   OrganizacaoDto,
   UnidadeDto,
 } from '@/modules/organization/application/dtos/organizacao.dto';
 import { api } from './api-client.service';
+import type {
+  AtualizarTemaParams,
+  TemaProps,
+  TemaPreset,
+} from '@/modules/organization/domain/value-objects/tema.vo';
+
+export type AtualizarTemaResposta = { tema: TemaProps; presets: TemaPreset[] };
 
 export type { OrganizacaoDto, UnidadeDto };
 
@@ -43,12 +49,15 @@ export const organizacaoService = {
     return api.put<OrganizacaoDto>('/api/organizacao', { body: input });
   },
 
-  async atualizarTema(input: Omit<AtualizarTemaInputDto, 'redeId'>): Promise<OrganizacaoDto> {
-    return api.put<OrganizacaoDto>('/api/organizacao/tema', { body: input });
+  async atualizarTema(input: AtualizarTemaParams): Promise<AtualizarTemaResposta> {
+    return api.put<AtualizarTemaResposta>('/api/organizacao/tema', { body: input });
   },
 
   /** Envia o logotipo como multipart (bucket `logos/{rede_id}/`) ou o remove. */
-  async definirLogotipo(input: { arquivo?: File; remover?: boolean }): Promise<OrganizacaoDto> {
+  async definirLogotipo(input: {
+    arquivo?: File;
+    remover?: boolean;
+  }): Promise<OrganizacaoDto> {
     const formData = new FormData();
     if (input.arquivo) formData.append('arquivo', input.arquivo);
     if (input.remover) formData.append('remover', 'true');
@@ -58,7 +67,10 @@ export const organizacaoService = {
 
   async listarUnidades(params: ListarUnidadesParams = {}): Promise<UnidadeDto[]> {
     const resposta = await api.getWithMeta<UnidadeDto[]>('/api/unidades', {
-      query: { busca: params.busca, ativo: params.ativo === undefined ? undefined : String(params.ativo) },
+      query: {
+        busca: params.busca,
+        ativo: params.ativo === undefined ? undefined : String(params.ativo),
+      },
     });
 
     return resposta.data;
@@ -68,7 +80,10 @@ export const organizacaoService = {
     return api.post<UnidadeDto>('/api/unidades', { body: input });
   },
 
-  async atualizarUnidade(unidadeId: string, input: Partial<CriarUnidadePayload>): Promise<UnidadeDto> {
+  async atualizarUnidade(
+    unidadeId: string,
+    input: Partial<CriarUnidadePayload>,
+  ): Promise<UnidadeDto> {
     return api.put<UnidadeDto>(`/api/unidades/${unidadeId}`, { body: input });
   },
 

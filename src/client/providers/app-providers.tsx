@@ -6,6 +6,7 @@ import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/client/ui/overlay';
 import { AppThemeProvider } from './theme-provider';
 import { AuthProvider } from './auth-provider';
+import { ConviteLinkHandler } from './convite-link-handler';
 
 function createQueryClient(): QueryClient {
   return new QueryClient({
@@ -30,6 +31,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ConviteLinkHandler />
       <AppThemeProvider>
         <TooltipProvider>
           <AuthProvider>{children}</AuthProvider>
