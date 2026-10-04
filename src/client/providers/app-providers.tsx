@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/client/ui/overlay';
 import { AppThemeProvider } from './theme-provider';
-import { AuthProvider } from './auth-provider';
 import { ConviteLinkHandler } from './convite-link-handler';
 
 function createQueryClient(): QueryClient {
@@ -33,9 +32,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <ConviteLinkHandler />
       <AppThemeProvider>
-        <TooltipProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </TooltipProvider>
+        <TooltipProvider>{children}</TooltipProvider>
         <Toaster
           position="top-right"
           richColors

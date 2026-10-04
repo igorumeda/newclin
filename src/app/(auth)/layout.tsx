@@ -1,6 +1,6 @@
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-muted/30 lg:flex-row">
+    <div className="auth-screen flex min-h-screen flex-col bg-background text-foreground lg:flex-row">
       <section
         aria-hidden
         className="hidden flex-1 flex-col justify-between bg-primary p-10 text-primary-foreground lg:flex"

@@ -173,10 +173,6 @@ export default function ConfiguracoesPage() {
         ['organizacao'],
         organizacao ? { ...organizacao, tema: result.tema } : undefined,
       );
-      queryClient.setQueryData(
-        ['organizacao', 'tema'],
-        organizacao ? { ...organizacao, tema: result.tema } : undefined,
-      );
       queryClient.invalidateQueries({ queryKey: ['organizacao'] });
     },
     onError: (erro) => toast.error(mensagemDeErro(erro)),

@@ -54,6 +54,7 @@ function LoginPageInterno() {
         email: dados.email.toLowerCase(),
         senha: dados.senha,
       });
+      queryClient.clear();
       queryClient.setQueryData(['auth', 'perfil'], {
         usuario: resposta.usuario,
         permissoes: resposta.permissoes,
