@@ -50,6 +50,9 @@ Entregar um sistema funcional que permita à clínica:
   telefone opcional, senha e confirmação de senha. E-mail, rede e permissões
   são definidos pelo administrador. O link precisa validar uma identidade
   convidada ativa; após concluir, o usuário entra com sua senha no login.
+  O envio mantém apenas a identidade pendente do Supabase Auth: o cadastro
+  interno (`profiles`) e o acesso à rede só são criados após a conclusão.
+  As permissões do convite são mantidas em metadados exclusivos do backend.
 - Existem quatro papéis (roles):
   - **Admin da Rede**: acesso total a todas as unidades, configurações,
     usuários e relatórios da rede.

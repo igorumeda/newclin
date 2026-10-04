@@ -33,13 +33,17 @@ export class SessaoInvalidaError extends UnauthorizedError {
 }
 
 export class UsuarioSemVinculoError extends ForbiddenError {
-  constructor(message = 'Usuário sem vínculo ativo com uma rede. Contate o administrador.') {
+  constructor(
+    message = 'Usuário sem vínculo ativo com uma rede. Contate o administrador.',
+  ) {
     super({ message, code: 'USER_WITHOUT_TENANT' });
     this.name = 'UsuarioSemVinculoError';
   }
 }
 
-export async function authenticate(params: AuthenticateParams): Promise<Result<RequestContext>> {
+export async function authenticate(
+  params: AuthenticateParams,
+): Promise<Result<RequestContext>> {
   try {
     const supabase = createRouteClient();
     const { data: authData, error: authError } = await supabase.auth.getUser();
@@ -47,6 +51,14 @@ export async function authenticate(params: AuthenticateParams): Promise<Result<R
     if (authError || !authData.user) {
       return Result.fail(new SessaoInvalidaError());
     }
+
+    if (
+      authData.user.invited_at &&
+      authData.user.app_metadata.cadastro_concluido !== true
+    )
+      return Result.fail(
+        new UsuarioSemVinculoError('Conclua seu cadastro para acessar a plataforma.'),
+      );
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -72,7 +84,11 @@ export async function authenticate(params: AuthenticateParams): Promise<Result<R
     });
   } catch (error) {
     if (error instanceof Error && error.name === 'SupabaseNotConfiguredError') {
-      return Result.fail(new SessaoInvalidaError('Sistema não configurado. Verifique o arquivo .env.local.'));
+      return Result.fail(
+        new SessaoInvalidaError(
+          'Sistema não configurado. Verifique o arquivo .env.local.',
+        ),
+      );
     }
     throw error;
   }

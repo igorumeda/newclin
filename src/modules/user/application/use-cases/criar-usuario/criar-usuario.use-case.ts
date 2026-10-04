@@ -6,32 +6,31 @@ import { EmailAlreadyInUseError } from '../../../domain/errors/user-conflict.err
 import type { IUsuarioRepository } from '../../../domain/repositories/usuario-repository.interface';
 import type { IIdentityProvider } from '../../../domain/services/identity-provider.interface';
 import type { AppRole } from '../../../domain/value-objects/role.vo';
-import { UsuarioMapper } from '../../mappers/usuario.mapper';
 import type { CriarUsuarioInputDto } from './criar-usuario.input.dto';
 import type { CriarUsuarioOutputDto } from './criar-usuario.output.dto';
 
 export type CriarUsuarioDependencies = {
   usuarioRepository: IUsuarioRepository;
   identityProvider: IIdentityProvider;
-  mapper: UsuarioMapper;
 };
 
 /**
  * Provisiona o acesso de um usuário à rede:
  * 1. valida e cria a entidade (papel, unidades, vínculo com profissional);
- * 2. cria as credenciais no Supabase Auth com metadados de tenancy;
- * 3. vincula a identidade ao agregado e persiste o profile.
+ * 2. envia o convite, sem persistir um usuário na plataforma.
+ * O profile é criado somente na conclusão do cadastro.
  */
-export class CriarUsuarioUseCase extends UseCase<CriarUsuarioInputDto, CriarUsuarioOutputDto> {
+export class CriarUsuarioUseCase extends UseCase<
+  CriarUsuarioInputDto,
+  CriarUsuarioOutputDto
+> {
   private readonly usuarioRepository: IUsuarioRepository;
   private readonly identityProvider: IIdentityProvider;
-  private readonly mapper: UsuarioMapper;
 
   constructor(dependencies: CriarUsuarioDependencies) {
     super();
     this.usuarioRepository = dependencies.usuarioRepository;
     this.identityProvider = dependencies.identityProvider;
-    this.mapper = dependencies.mapper;
   }
 
   async execute(input: CriarUsuarioInputDto): Promise<Result<CriarUsuarioOutputDto>> {
@@ -66,13 +65,7 @@ export class CriarUsuarioUseCase extends UseCase<CriarUsuarioInputDto, CriarUsua
       redirectTo: input.appUrl,
     });
 
-    const vinculo = usuario.vincularCredenciais({ authUserId: credenciais.authUserId });
-    if (vinculo.isFailure) return Result.fail(vinculo.error);
-
-    await this.usuarioRepository.save(usuario);
-
     return Result.ok({
-      usuario: this.mapper.map({ usuario }),
       conviteEnviado: credenciais.conviteEnviado,
     });
   }

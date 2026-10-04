@@ -42,7 +42,7 @@ export async function criarUsuarioRoute(request: Request): Promise<NextResponse>
     allowedRoles: [...GESTAO],
     audit: {
       action: 'criar',
-      entity: 'profiles',
+      entity: 'convites',
       description: 'Convite de usuário da rede',
     },
     handler: async ({ context, body }) => {

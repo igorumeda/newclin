@@ -13,8 +13,8 @@ export type SupabaseIdentityProviderDependencies = {
 
 /**
  * Adapter de identidade sobre o Supabase Auth (service role).
- * Usa metadados (`raw_user_meta_data`) para que o trigger `on_auth_user_created`
- * já crie o profile com a rede, o papel e as unidades corretas.
+ * Convites mantêm somente uma identidade pendente no Auth. A autorização fica
+ * em app_metadata (escrita exclusiva do backend), até a conclusão do cadastro.
  */
 export class SupabaseIdentityProvider extends IdentityProvider {
   private readonly serviceClient: SupabaseClient;
@@ -43,7 +43,7 @@ export class SupabaseIdentityProvider extends IdentityProvider {
     const { data, error } = await this.serviceClient.auth.admin.inviteUserByEmail(
       params.email,
       {
-        data: metadata,
+        data: { ...metadata, cadastro_pendente: true },
         redirectTo: params.redirectTo,
       },
     );
@@ -55,6 +55,19 @@ export class SupabaseIdentityProvider extends IdentityProvider {
       });
     }
 
+    const redeConvidada = data.user.app_metadata.convite?.rede_id;
+    if (
+      data.user.app_metadata.cadastro_concluido === true ||
+      (redeConvidada && redeConvidada !== params.redeId)
+    )
+      throw new EmailAlreadyInUseError({ email: params.email });
+
+    const { error: metadataError } = await this.serviceClient.auth.admin.updateUserById(
+      data.user.id,
+      { app_metadata: { convite: metadata, cadastro_concluido: false } },
+    );
+    if (metadataError)
+      throw new Error('Não foi possível preparar o convite. Tente enviar novamente.');
     return { authUserId: data.user.id, conviteEnviado: true };
   }
 
@@ -77,7 +90,10 @@ export class SupabaseIdentityProvider extends IdentityProvider {
       params.authUserId,
       {
         ...attributes,
-        user_metadata: metadata,
+        user_metadata: {
+          ...metadata,
+          ...(params.telefone !== undefined ? { telefone: params.telefone } : {}),
+        },
         ...(params.cadastroConcluido
           ? { app_metadata: { cadastro_concluido: true } }
           : {}),

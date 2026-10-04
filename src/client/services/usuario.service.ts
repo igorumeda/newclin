@@ -28,8 +28,8 @@ export const usuarioService = {
     return { items: resposta.data, meta: resposta.meta ?? {} };
   },
 
-  async criar(input: UsuarioPayload): Promise<UsuarioDto> {
-    return api.post<UsuarioDto>('/api/usuarios', { body: input });
+  async criar(input: UsuarioPayload): Promise<{ conviteEnviado: boolean }> {
+    return api.post<{ conviteEnviado: boolean }>('/api/usuarios', { body: input });
   },
 
   async atualizar(usuarioId: string, input: Partial<Omit<UsuarioPayload, 'email'>>): Promise<UsuarioDto> {
