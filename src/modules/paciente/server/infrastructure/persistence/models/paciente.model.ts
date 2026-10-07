@@ -1,0 +1,41 @@
+export type PacienteModel = {
+  id: string;
+  rede_id: string;
+  nome: string;
+  cpf: string;
+  data_nascimento: Date | string;
+  sexo: string;
+  telefone: string | null;
+  email: string | null;
+  endereco: Record<string, string>;
+  responsavel_nome: string | null;
+  responsavel_telefone: string | null;
+  alergias: string[] | null;
+  condicoes_cronicas: string[] | null;
+  observacoes: string | null;
+  consentimento_lgpd: boolean;
+  consentimento_em: Date | null;
+  ativo: boolean;
+  created_at: Date;
+  updated_at: Date;
+};
+
+export type PacienteModelData = {
+  id: string;
+  rede_id: string;
+  nome: string;
+  cpf: string;
+  data_nascimento: string;
+  sexo: string;
+  telefone: string | null;
+  email: string | null;
+  endereco: string;
+  responsavel_nome: string | null;
+  responsavel_telefone: string | null;
+  alergias: string[];
+  condicoes_cronicas: string[];
+  observacoes: string | null;
+  consentimento_lgpd: boolean;
+  consentimento_em: Date | null;
+  ativo: boolean;
+};
