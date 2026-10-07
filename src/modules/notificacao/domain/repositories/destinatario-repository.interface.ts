@@ -13,6 +13,9 @@ export type DestinatarioAgendamento = {
   unidadeFusoHorario: string;
   redeNome: string;
   inicio: string;
+  /** Data e hora já convertidas para o fuso da unidade na borda (anti-pattern #25). */
+  dataLocal: string;
+  horaLocal: string;
   status: string;
   lembreteWhatsapp: boolean;
   lembreteEmail: boolean;

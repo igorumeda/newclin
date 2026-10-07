@@ -9,39 +9,29 @@ export type MontarVariaveisParams = {
   documento?: string | null;
 };
 
-/** Converte a projeção do agendamento nas variáveis dos templates, no fuso da unidade. */
+/**
+ * Converte a projeção do agendamento nas variáveis dos templates. A conversão
+ * de fuso horário acontece na borda (projeção de leitura), não aqui.
+ */
 export class FormatadorAgendamentoService extends DomainService<
   MontarVariaveisParams,
   VariaveisNotificacao
 > {
   public execute(params: MontarVariaveisParams): Result<VariaveisNotificacao> {
-    const inicio = new Date(params.destinatario.inicio);
-    if (Number.isNaN(inicio.getTime())) {
-      return Result.fail(new Error('Data do agendamento inválida'));
+    const { destinatario } = params;
+    if (!destinatario.dataLocal || !destinatario.horaLocal) {
+      return Result.fail(new Error('Agendamento sem data/hora formatadas'));
     }
 
-    const fuso = params.destinatario.unidadeFusoHorario || 'America/Sao_Paulo';
-    const data = new Intl.DateTimeFormat('pt-BR', {
-      timeZone: fuso,
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(inicio);
-    const hora = new Intl.DateTimeFormat('pt-BR', {
-      timeZone: fuso,
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(inicio);
-
     return Result.ok({
-      paciente: params.destinatario.pacienteNome,
-      profissional: params.destinatario.profissionalNome,
-      unidade: params.destinatario.unidadeNome,
-      endereco: params.destinatario.unidadeEndereco,
-      telefoneUnidade: params.destinatario.unidadeTelefone ?? '',
-      rede: params.destinatario.redeNome,
-      data,
-      hora,
+      paciente: destinatario.pacienteNome,
+      profissional: destinatario.profissionalNome,
+      unidade: destinatario.unidadeNome,
+      endereco: destinatario.unidadeEndereco,
+      telefoneUnidade: destinatario.unidadeTelefone ?? '',
+      rede: destinatario.redeNome,
+      data: destinatario.dataLocal,
+      hora: destinatario.horaLocal,
       motivo: params.motivo ?? 'não informado',
       documento: params.documento ?? '',
     });

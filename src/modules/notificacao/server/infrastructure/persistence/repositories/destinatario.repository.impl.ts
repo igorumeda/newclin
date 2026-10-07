@@ -8,6 +8,29 @@ import type { DatabaseClient } from '@/server/infrastructure/database/database-c
 
 export type DestinatarioRepositoryDependencies = { db: DatabaseClient };
 
+type FormatarDataHoraParams = { inicio: Date; fusoHorario: string };
+type DataHoraLocal = { dataLocal: string; horaLocal: string };
+
+const FUSO_PADRAO = 'America/Sao_Paulo';
+
+/** Conversão UTC → fuso da unidade: acontece na borda, nunca no domínio. */
+function formatarDataHora({ inicio, fusoHorario }: FormatarDataHoraParams): DataHoraLocal {
+  const fuso = fusoHorario || FUSO_PADRAO;
+  return {
+    dataLocal: new Intl.DateTimeFormat('pt-BR', {
+      timeZone: fuso,
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(inicio),
+    horaLocal: new Intl.DateTimeFormat('pt-BR', {
+      timeZone: fuso,
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(inicio),
+  };
+}
+
 type DestinatarioRow = {
   rede_id: string;
   agendamento_id: string;
@@ -94,6 +117,12 @@ export class DestinatarioRepositoryImpl extends DestinatarioRepository {
 
   private toDestinatario(record: DestinatarioRow): DestinatarioAgendamento {
     const config = record.configuracoes ?? {};
+    const inicio = new Date(record.inicio);
+    const { dataLocal, horaLocal } = formatarDataHora({
+      inicio,
+      fusoHorario: record.unidade_fuso,
+    });
+
     return {
       redeId: record.rede_id,
       agendamentoId: record.agendamento_id,
@@ -107,7 +136,9 @@ export class DestinatarioRepositoryImpl extends DestinatarioRepository {
       unidadeTelefone: record.unidade_telefone,
       unidadeFusoHorario: record.unidade_fuso,
       redeNome: record.rede_nome,
-      inicio: new Date(record.inicio).toISOString(),
+      inicio: inicio.toISOString(),
+      dataLocal,
+      horaLocal,
       status: record.status,
       lembreteWhatsapp: config.lembreteWhatsapp !== false,
       lembreteEmail: config.lembreteEmail !== false,
