@@ -549,6 +549,36 @@ Cada sistema pode customizar a cor primária alterando **apenas** o token `--pri
 
 ---
 
+### 5.4 Identidade visual da rede
+
+O formulário de conclusão de convite usa o layout público de autenticação e um card com nome, telefone opcional, e-mail somente leitura e senha com confirmação. Apresente estados de validação do link, link inválido/expirado e erros por campo. O botão **Concluir cadastro** usa o estado compartilhado de carregamento. Após salvar, retorne ao login com confirmação.
+
+O login apresenta **Esqueceu sua senha?** após o campo de senha. A recuperação usa o mesmo layout público, com um card para solicitar o link e outro para definir e confirmar a nova senha. Mostre confirmação genérica do envio, carregamento, erros por campo e ação **Solicitar novo link** para links inválidos ou expirados. A senha segue o Value Object compartilhado `Senha`, também utilizado no convite. Após salvar, retorne ao login com confirmação.
+
+As páginas públicas de autenticação usam a identidade fixa `.auth-screen`, em modo claro, independente da rede e da preferência de aparência do usuário. Elas não consultam o perfil nem as configurações da rede para definir suas cores. O tema da rede é aplicado somente no layout autenticado e removido ao sair dele. Antes de montar barra lateral, cabeçalho e conteúdo, aguarde o perfil, as configurações, a aplicação das variáveis CSS e o download/decodificação do logotipo. Durante essa preparação, exiba **Carregando…** no estilo público fixo. Se o carregamento falhar, ofereça **Tentar novamente** e **Voltar ao login**, sem mostrar a aplicação com identidade incompleta. As configurações e a barra lateral compartilham a mesma consulta da organização.
+
+O painel institucional à esquerda usa a imagem decorativa `images/login-background.jpg` do Storage público do Supabase, com `background-size: cover` e posição central: preenche o painel mantendo a proporção, com recorte quando necessário. Uma sobreposição azul em gradiente preserva a leitura do texto branco. O painel permanece oculto no mobile e mantém o fundo azul como fallback quando a imagem não estiver disponível.
+
+Na tela de redefinição, agrupe **Solicitar novo link** e **Voltar ao login** com `flex flex-wrap gap-x-4 gap-y-2`, mantendo espaçamento entre as ações também em telas pequenas.
+
+O catálogo padrão contém exatamente dez presets protegidos: Oceano, Jade Suave, Íris, Areia Quente, Aurora, Petróleo, Âmbar, Lavanda, Prata e Cobalto. Cada preset mantém a mesma família de cor nos dois modos, incluindo fundos, texto, cards, menus, cabeçalho e acentos. Jade Suave, Areia Quente e Prata usam barra lateral pastel com texto escuro no modo claro; no escuro, ela usa um tom mais claro que o fundo da página, com texto claro. Os demais usam barra lateral mais profunda nos dois modos. Os identificadores existentes são preservados para manter as seleções já salvas.
+
+As superfícies são derivadas de `background` pelo aplicador de tema: cards e cabeçalho ficam três pontos de luminosidade acima do fundo no modo claro e cinco no escuro; popovers ficam quatro e oito pontos acima, respectivamente. Texto secundário, bordas dos campos e foco acompanham a família da paleta. Não reutilize as superfícies azuladas globais ao aplicar um preset da rede. Verifique contraste mínimo de 4,5:1 para os textos principais, secundários e sobre botões nos vinte cenários (dez presets × dois modos). Presets personalizados mantêm suas cores salvas e recebem as superfícies derivadas em runtime.
+
+Identifique cada preset como **Padrão do sistema** ou **Preset da rede**. Os presets padrão podem ser aplicados e duplicados, mas seus seletores de cores ficam desabilitados. Para personalizar, o administrador cria ou duplica um preset da rede. Ao salvar as cores de um preset próprio, atualize a sua combinação persistida; ao criar uma cópia, preserve o original. A camada de domínio também rejeita alterações diretas nos presets padrão pela API.
+
+Na tela de configurações, use o componente compartilhado `ColorPicker` para escolher cores. A amostra abre o seletor nativo, tem rótulo associado e apresenta o valor hexadecimal; a conversão para os tokens HSL ocorre automaticamente. Disponibilize controles separados para os modos claro e escuro e desabilite a edição sem permissão ou durante o salvamento.
+
+O administrador pode salvar a combinação atual como um novo preset, com nome obrigatório de 3 a 60 caracteres e descrição opcional de até 160 caracteres. O nome não pode repetir um preset disponível. Criar um preset salva e aplica as cores à rede; os presets personalizados continuam disponíveis ao selecionar outro preset e ao recarregar a página.
+
+Presets personalizados pertencem à rede e ficam no JSON do tema, junto às cores dos dois modos. Eles alteram somente os tokens de identidade visual; tipografia, espaçamento, layout e cores semânticas de estados seguem este documento. O fundo da barra lateral usa `--sidebar-bg`; aplique as variáveis dos modos em regras `:root` e `.dark` para preservar a alternância de tema.
+
+Cada preset, inicial ou personalizado, oferece a ação **Duplicar**. Abra o formulário com nome sugerido e descrição preenchida, copiando as cores salvas dos dois modos do preset de origem. O administrador pode ajustar o nome antes de salvar e aplicar a cópia; cancelar mantém a seleção e os ajustes em andamento. A ação de duplicar fica separada do botão de selecionar o preset, com rótulo acessível que identifica a origem.
+
+Separe o catálogo pelos títulos **Presets padrão do sistema** e **Presets personalizados**. Nos personalizados, ofereça **Editar** (nome, descrição e cores dos dois modos) e **Excluir**, com confirmação. Editar um preset que não está aplicado mantém o tema ativo; editar o preset ativo atualiza a identidade visual. Excluir o preset ativo aplica Oceano, preservando os demais presets personalizados. Essas ações são restritas ao administrador da rede e validadas no domínio.
+
+---
+
 ## 6. Espaçamentos e Layout
 
 ### 6.1 Grid Base
@@ -1609,7 +1639,7 @@ export function CreateUserForm({ onSubmit, isLoading }: CreateUserFormProps) {
             />
 
             <div className="flex items-center gap-3">
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" carregando={isLoading}>
                 {isLoading ? 'Criando...' : 'Criar Usuário'}
               </Button>
               <Button
@@ -1634,7 +1664,7 @@ export function CreateUserForm({ onSubmit, isLoading }: CreateUserFormProps) {
 2. **Validação no client espelha o domínio**: As regras do Zod devem refletir as regras dos Value Objects do domínio.
 3. **Mensagens de erro em português**: O usuário final é brasileiro.
 4. **Labels obrigatórios em todos os campos**: Nunca placeholders como substituto de label.
-5. **Feedback de loading no botão de submit**: Desabilite o botão e mostre texto de loading.
+5. **Feedback de loading no botão de submit**: Use o estado `carregando` do componente `Button`, que desabilita a ação e sinaliza `aria-busy`. Enquanto carrega, apenas o indicador de loading fica visível entre os ícones; os ícones SVG originais ficam ocultos e reaparecem ao terminar. Preserve o texto da ação ou use um texto de loading, sem adicionar outro spinner no consumidor.
 6. **Toast de sucesso/erro**: Sempre notifique o resultado da ação.
 7. **Reset após sucesso**: Limpe o formulário após criação bem-sucedida.
 
@@ -2045,7 +2075,7 @@ Dark mode é gerenciado pelo `next-themes`. O toggle está no Header (botão Sol
 | 19  | **Ignorar dark mode**                           | Sempre implemente ambos                                    |
 | 20  | **Ignorar mobile**                              | Teste em todos os breakpoints                              |
 | 21  | **Breadcrumbs sem link**                        | Todo item do breadcrumb é clicável (exceto o último)       |
-| 22  | **Botões sem estado disabled durante loading**  | Sempre desabilite durante requests                         |
+| 22  | **Botões sem estado disabled durante loading**  | Use `Button` com `carregando`; exiba apenas o spinner, ocultando os ícones originais até terminar |
 | 23  | **Tooltips em elementos touch-only**            | Tooltips são para desktop/mouse                            |
 | 24  | **Overlays sem fechar com ESC**                 | Todo overlay fecha com ESC                                 |
 | 25  | **Scroll travado em modais sem scroll**         | Modais devem ter scroll interno quando necessário          |

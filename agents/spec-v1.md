@@ -1,4 +1,4 @@
-# Especificação Funcional — Clínica SaaS v1.0
+# Especificação Funcional — NewClin
 
 ## 1. Contexto
 
@@ -42,6 +42,17 @@ Entregar um sistema funcional que permita à clínica:
 ### 3.2 Usuários e Permissões
 
 - Todo usuário está vinculado a uma única rede.
+- O login oferece **Esqueceu sua senha?**. O usuário informa seu e-mail,
+  recebe um link de recuperação e define uma nova senha com confirmação.
+  A solicitação não revela se o e-mail existe. A troca exige uma sessão
+  válida com vínculo ativo, altera apenas a senha e retorna ao login.
+- O convite por e-mail abre o formulário de conclusão do cadastro, com nome,
+  telefone opcional, senha e confirmação de senha. E-mail, rede e permissões
+  são definidos pelo administrador. O link precisa validar uma identidade
+  convidada ativa; após concluir, o usuário entra com sua senha no login.
+  O envio mantém apenas a identidade pendente do Supabase Auth: o cadastro
+  interno (`profiles`) e o acesso à rede só são criados após a conclusão.
+  As permissões do convite são mantidas em metadados exclusivos do backend.
 - Existem quatro papéis (roles):
   - **Admin da Rede**: acesso total a todas as unidades, configurações,
     usuários e relatórios da rede.
@@ -166,8 +177,13 @@ Entregar um sistema funcional que permita à clínica:
   o sistema para os usuários daquela rede.
 - O tema altera apenas **cores** (primária, secundária, acento, fundo,
   texto, bordas, sidebar). Não altera tipografia, espaçamentos ou layout.
-- O sistema deve oferecer ao menos 4 presets iniciais (ex: azul saúde,
-  verde, roxo, escuro) e permitir customização livre de cada cor.
+- O sistema oferece 10 presets padrão protegidos: Oceano, Jade Suave, Íris,
+  Areia Quente, Aurora, Petróleo, Âmbar, Lavanda, Prata e Cobalto.
+  As paletas mantêm a mesma família de cor no claro e no escuro, com
+  superfícies distintas para fundo, cards e menus. Jade Suave, Areia Quente
+  e Prata têm barra lateral pastel no claro e mais suave que o fundo no escuro.
+  Eles podem ser aplicados e duplicados, mas não editados. A rede pode
+  criar presets próprios e editar livremente as suas cores nos dois modos.
 - Cada rede pode fazer upload do seu **logotipo**, que será exibido na
   sidebar, no cabeçalho e nos documentos clínicos emitidos.
 - A configuração de tema e logotipo é restrita ao papel Admin da Rede.

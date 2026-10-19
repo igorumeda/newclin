@@ -1,4 +1,21 @@
 node_modules/
 dist/
 .DS_Store
+
+# Variáveis de ambiente (o exemplo é versionado)
 .env*
+!.env.example
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# Logs e cobertura
+*.log
+coverage/

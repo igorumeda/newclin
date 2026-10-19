@@ -2,14 +2,20 @@
 
 ## ⚠️ OBRIGATÓRIO: Leia Antes de Qualquer Ação
 
-Você é um agente de IA trabalhando em um ecossistema de sistemas web full-stack isomórficos. **Antes de escrever, modificar ou sugerir qualquer linha de código**, você DEVE consultar e seguir rigorosamente TODOS os documentos localizados na pasta `agents/` deste projeto.
+Você é um agente de IA trabalhando em um ecossistema de sistemas web full-stack
+isomórficos. **Antes de escrever, modificar ou sugerir qualquer linha de
+código**, você DEVE consultar e seguir rigorosamente TODOS os documentos
+localizados na pasta `agents/` deste projeto.
 
 ## 📂 Documentos de Referência
 
-| Arquivo                                            | Conteúdo                                                 | Quando Consultar                                                                            |
-| -------------------------------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| [agents/ARCHITECTURE.md](agents/ARCHITECTURE.md)   | Arquitetura completa: camadas, regras, padrões, exemplos | **SEMPRE** — antes de qualquer tarefa                                                       |
-| [agents/design-system.md](agents/design-system.md) | Layout, componentes, design tokens e padrões de UI       | Antes de tarefas de interface; leitura obrigatória junto aos demais documentos de `agents/` |
+- **[agents/ARCHITECTURE.md](agents/ARCHITECTURE.md)**
+  - **Conteúdo:** Arquitetura completa: camadas, regras, padrões, exemplos
+  - **Quando Consultar:** **SEMPRE** — antes de qualquer tarefa
+- **[agents/design-system.md](agents/design-system.md)**
+  - **Conteúdo:** Layout, componentes, design tokens e padrões de UI
+  - **Quando Consultar:** Antes de tarefas de interface; leitura obrigatória
+    junto aos demais documentos de `agents/`
 
 > **Nota:** A pasta `agents/` pode receber novos documentos no futuro
 > (ex: `agents/testing.md`, `agents/deployment.md`, `agents/api-contracts.md`).
@@ -17,20 +23,27 @@ Você é um agente de IA trabalhando em um ecossistema de sistemas web full-stac
 
 ## 🚨 Regras Inegociáveis
 
-1. **Nunca** escreva código que viole as regras definidas em `agents/ARCHITECTURE.md`.
-2. **Nunca** importe camadas na direção errada (client → server, domain → infra, etc.).
+1. **Nunca** escreva código que viole as regras definidas em
+   `agents/ARCHITECTURE.md`.
+2. **Nunca** importe camadas na direção errada (client → server,
+   domain → infra, etc.).
 3. **Nunca** crie lógica de negócio fora da camada de domínio.
-4. **Nunca** crie código no domínio que dependa de runtime específico (Node, Browser, etc.).
+4. **Nunca** crie código no domínio que dependa de runtime específico (Node,
+   Browser, etc.).
 5. **Sempre** siga o padrão de pastas e nomenclatura definido.
-6. **Sempre** utilize o Result Pattern ao invés de lançar exceptions para erros de domínio.
+6. **Sempre** utilize o Result Pattern ao invés de lançar exceptions para erros
+   de domínio.
 7. **Sempre** reutilize Value Objects do domínio nas validações do client.
-8. **Sempre** consulte este arquivo e a pasta `agents/` no início de cada nova sessão.
+8. **Sempre** consulte este arquivo e a pasta `agents/` no início de cada nova
+   sessão.
 
 ## 🔄 Fluxo de Trabalho do Agente
 
 1. Receber tarefa
 2. Ler `AGENTS.md` (este arquivo)
-3. Verificar todos os documentos de `agents/` e lê-los na íntegra, incluindo [ARCHITECTURE.md](agents/ARCHITECTURE.md) e [design-system.md](agents/design-system.md)
+3. Verificar todos os documentos de `agents/` e lê-los na íntegra, incluindo
+   [ARCHITECTURE.md](agents/ARCHITECTURE.md) e
+   [design-system.md](agents/design-system.md)
 4. Identificar em qual camada/módulo a tarefa se encaixa
 5. Verificar regras de importação para aquela camada
 6. Implementar seguindo os padrões e exemplos
