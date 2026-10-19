@@ -11,6 +11,11 @@ export const metadata: Metadata = {
     'Sistema multi-tenant para redes de clínicas: agenda, recepção, prontuário eletrônico, documentos clínicos e relatórios.',
   applicationName: 'Clínica SaaS',
   manifest: '/manifest.webmanifest',
+  icons: {
+    icon: '/icons/icone.svg',
+    shortcut: '/icons/icone.svg',
+    apple: '/icons/icone.svg',
+  },
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Clínica SaaS' },
 };
 

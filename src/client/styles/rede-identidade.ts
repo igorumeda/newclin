@@ -3,8 +3,34 @@ import type { TemaProps } from '@/modules/organization/domain/value-objects/tema
 import { criarTokensTema } from './tema-tokens';
 
 export const REDE_TEMA_STYLE_ID = 'rede-tema-dark';
+export const REDE_FAVICON_ID = 'rede-favicon';
+export const FAVICON_PADRAO_URL = '/icons/icone.svg';
 type AplicarTemaParams = { tema: TemaProps };
 type CarregarLogotipoParams = { url: string | null; signal: AbortSignal };
+type AplicarFaviconParams = { url: string | null };
+
+export function aplicarFaviconDaRede({ url }: AplicarFaviconParams): void {
+  const href = url?.trim() ? url.trim() : FAVICON_PADRAO_URL;
+  const seletor =
+    'link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]';
+  const links = document.head.querySelectorAll<HTMLLinkElement>(seletor);
+  if (links.length === 0) {
+    const link = document.createElement('link');
+    link.id = REDE_FAVICON_ID;
+    link.rel = 'icon';
+    link.href = href;
+    document.head.appendChild(link);
+    return;
+  }
+  links.forEach((link) => {
+    link.removeAttribute('type');
+    link.href = href;
+  });
+}
+
+export function removerFaviconDaRede(): void {
+  aplicarFaviconDaRede({ url: null });
+}
 
 export function aplicarTemaDaRede({ tema }: AplicarTemaParams): void {
   const atual = Tema.reconstitute(tema);

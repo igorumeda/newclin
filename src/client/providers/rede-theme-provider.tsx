@@ -1,19 +1,23 @@
 'use client';
 
 import { useEffect, useState, type ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { useAuth } from './auth-provider';
 import { useOrganizacao } from '../hooks/use-organizacao';
 import { Button } from '../ui/button';
 import {
+  aplicarFaviconDaRede,
   aplicarTemaDaRede,
   carregarLogotipo,
   REDE_TEMA_STYLE_ID,
+  removerFaviconDaRede,
 } from '../styles/rede-identidade';
 
 type RedeThemeProviderProps = { children: ReactNode };
 
 /** Só libera a aplicação quando identidade visual e logotipo estiverem prontos. */
 export function RedeThemeProvider({ children }: RedeThemeProviderProps) {
+  const pathname = usePathname();
   const {
     redeId,
     carregando: carregandoPerfil,
@@ -37,6 +41,7 @@ export function RedeThemeProvider({ children }: RedeThemeProviderProps) {
   useEffect(
     () => () => {
       document.getElementById(REDE_TEMA_STYLE_ID)?.remove();
+      removerFaviconDaRede();
     },
     [],
   );
@@ -48,13 +53,20 @@ export function RedeThemeProvider({ children }: RedeThemeProviderProps) {
     aplicarTemaDaRede({ tema: organizacao.tema });
     void carregarLogotipo({ url: organizacao.logotipoUrl, signal: controller.signal })
       .then(() => {
-        if (!controller.signal.aborted) setPronta(chave);
+        if (controller.signal.aborted) return;
+        aplicarFaviconDaRede({ url: organizacao.logotipoUrl });
+        setPronta(chave);
       })
       .catch(() => {
         if (!controller.signal.aborted) setErroLogo(true);
       });
     return () => controller.abort();
   }, [organizacao, chave, tentativa]);
+
+  useEffect(() => {
+    if (!organizacao || pronta !== chave) return;
+    aplicarFaviconDaRede({ url: organizacao.logotipoUrl });
+  }, [pathname, organizacao, pronta, chave]);
 
   if (chave && pronta === chave && perfil) return <>{children}</>;
 
