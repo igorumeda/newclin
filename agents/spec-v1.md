@@ -1,4 +1,4 @@
-# Especificação Funcional — Clínica SaaS v1.0
+# Especificação Funcional — NewClin
 
 ## 1. Contexto
 
