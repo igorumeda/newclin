@@ -5,6 +5,7 @@ import { api } from './api-client.service';
 export type { UsuarioDto, AuditoriaDto };
 
 export type UsuarioPayload = {
+  redeId?: string | null;
   nome: string;
   email: string;
   role?: string;
@@ -14,10 +15,20 @@ export type UsuarioPayload = {
   senhaInicial?: string | null;
 };
 
+export type ListarUsuariosParams = {
+  redeId?: string;
+  busca?: string;
+  role?: string;
+  ativo?: boolean;
+  page?: number;
+  perPage?: number;
+};
+
 export const usuarioService = {
-  async listar(params: { busca?: string; role?: string; ativo?: boolean; page?: number; perPage?: number }) {
+  async listar(params: ListarUsuariosParams) {
     const resposta = await api.getWithMeta<UsuarioDto[]>('/api/usuarios', {
       query: {
+        redeId: params.redeId,
         busca: params.busca,
         role: params.role,
         ativo: params.ativo === undefined ? undefined : String(params.ativo),

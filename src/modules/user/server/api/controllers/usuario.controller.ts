@@ -25,10 +25,24 @@ export type UsuarioControllerDependencies = {
 };
 
 export type UsuarioControllerRequest =
-  | { action: 'listar'; context: RequestContext; input: Omit<ListarUsuariosInputDto, 'redeId'> }
+  | {
+      action: 'listar';
+      context: RequestContext;
+      input: Omit<ListarUsuariosInputDto, 'redeId'> & { redeId?: string };
+    }
   | { action: 'perfil-atual'; context: RequestContext }
-  | { action: 'criar'; context: RequestContext; input: Omit<CriarUsuarioInputDto, 'redeId' | 'appUrl'>; appUrl: string }
-  | { action: 'atualizar'; context: RequestContext; usuarioId: string; input: Omit<AtualizarUsuarioInputDto, 'usuarioId' | 'solicitanteRedeId'> }
+  | {
+      action: 'criar';
+      context: RequestContext;
+      input: Omit<CriarUsuarioInputDto, 'redeId' | 'appUrl'> & { redeId?: string | null };
+      appUrl: string;
+    }
+  | {
+      action: 'atualizar';
+      context: RequestContext;
+      usuarioId: string;
+      input: Omit<AtualizarUsuarioInputDto, 'usuarioId' | 'solicitanteRedeId'>;
+    }
   | { action: 'inativar'; context: RequestContext; usuarioId: string }
   | { action: 'reativar'; context: RequestContext; usuarioId: string };
 
@@ -58,8 +72,21 @@ export class UsuarioController extends Controller<UsuarioControllerRequest, Http
     }
   }
 
-  private resolveRedeScope(context: RequestContext): string | null {
-    return context.isMaster ? null : context.redeId;
+  private resolveTargetRedeId(
+    context: RequestContext,
+    requestedRedeId?: string | null,
+  ): string | null {
+    if (context.isMaster) {
+      return requestedRedeId ?? null;
+    }
+    return context.redeId;
+  }
+
+  private resolveSolicitanteRedeScope(context: RequestContext): string | undefined {
+    if (context.isMaster) {
+      return undefined;
+    }
+    return context.redeId ?? undefined;
   }
 
   private async listar(
@@ -67,7 +94,7 @@ export class UsuarioController extends Controller<UsuarioControllerRequest, Http
   ): Promise<HttpResponse> {
     const result = await this.dependencies.listarUsuarios.execute({
       ...request.input,
-      redeId: this.resolveRedeScope(request.context),
+      redeId: this.resolveTargetRedeId(request.context, request.input.redeId),
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
     return HttpResponse.ok(result.value.items, { ...result.value.meta });
@@ -88,7 +115,7 @@ export class UsuarioController extends Controller<UsuarioControllerRequest, Http
   ): Promise<HttpResponse> {
     const result = await this.dependencies.criarUsuario.execute({
       ...request.input,
-      redeId: this.resolveRedeScope(request.context),
+      redeId: this.resolveTargetRedeId(request.context, request.input.redeId),
       appUrl: request.appUrl,
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
@@ -100,7 +127,7 @@ export class UsuarioController extends Controller<UsuarioControllerRequest, Http
   ): Promise<HttpResponse> {
     const result = await this.dependencies.atualizarUsuario.execute({
       usuarioId: request.usuarioId,
-      solicitanteRedeId: this.resolveRedeScope(request.context),
+      solicitanteRedeId: this.resolveSolicitanteRedeScope(request.context),
       ...request.input,
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
@@ -113,7 +140,7 @@ export class UsuarioController extends Controller<UsuarioControllerRequest, Http
     const result = await this.dependencies.inativarUsuario.execute({
       usuarioId: request.usuarioId,
       solicitanteId: request.context.userId,
-      solicitanteRedeId: this.resolveRedeScope(request.context),
+      solicitanteRedeId: this.resolveSolicitanteRedeScope(request.context),
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
     return HttpResponse.ok(result.value);
@@ -124,7 +151,7 @@ export class UsuarioController extends Controller<UsuarioControllerRequest, Http
   ): Promise<HttpResponse> {
     const result = await this.dependencies.reativarUsuario.execute({
       usuarioId: request.usuarioId,
-      solicitanteRedeId: this.resolveRedeScope(request.context),
+      solicitanteRedeId: this.resolveSolicitanteRedeScope(request.context),
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
     return HttpResponse.ok(result.value);

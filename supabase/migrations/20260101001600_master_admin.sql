@@ -76,7 +76,7 @@ create policy profiles_select on public.profiles
   using (
     auth_user_id = auth.uid()
     or (rede_id = public.current_rede_id() and public.current_user_role() in ('admin_rede', 'gestor_unidade'))
-    or (rede_id is null and public.is_master_admin())
+    or public.is_master_admin()
   );
 
 drop policy if exists profiles_insert on public.profiles;
@@ -84,7 +84,7 @@ create policy profiles_insert on public.profiles
   for insert to authenticated
   with check (
     (rede_id = public.current_rede_id() and public.is_rede_admin())
-    or (rede_id is null and public.is_master_admin())
+    or public.is_master_admin()
   );
 
 drop policy if exists profiles_update on public.profiles;
@@ -93,11 +93,11 @@ create policy profiles_update on public.profiles
   using (
     auth_user_id = auth.uid()
     or (rede_id = public.current_rede_id() and public.is_rede_admin())
-    or (rede_id is null and public.is_master_admin())
+    or public.is_master_admin()
   )
   with check (
     (rede_id = public.current_rede_id())
-    or (rede_id is null and public.is_master_admin())
+    or public.is_master_admin()
   );
 
 drop policy if exists profiles_delete on public.profiles;
@@ -105,7 +105,7 @@ create policy profiles_delete on public.profiles
   for delete to authenticated
   using (
     (rede_id = public.current_rede_id() and public.is_rede_admin())
-    or (rede_id is null and public.is_master_admin())
+    or public.is_master_admin()
   );
 
 drop policy if exists audit_logs_select on public.audit_logs;

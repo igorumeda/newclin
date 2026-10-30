@@ -63,9 +63,8 @@ export class UsuarioRepositoryImpl extends UsuarioRepository {
   async listar(filtro: ListarUsuariosFiltro): Promise<ListarUsuariosResultado> {
     const from = (filtro.page - 1) * filtro.perPage;
     const to = from + filtro.perPage - 1;
-    const client = filtro.redeId === null ? this.serviceClient : this.supabase;
 
-    let query = client
+    let query = this.serviceClient
       .from('profiles')
       .select(PROFILE_COLUMNS, { count: 'exact' })
       .is('deleted_at', null);
@@ -98,8 +97,7 @@ export class UsuarioRepositoryImpl extends UsuarioRepository {
 
   async save(usuario: Usuario): Promise<void> {
     const data = this.mapper.toPersistence({ entity: usuario });
-    const client = usuario.isMaster ? this.serviceClient : this.supabase;
-    const { error } = await client
+    const { error } = await this.serviceClient
       .from('profiles')
       .upsert(data, { onConflict: 'auth_user_id' });
     if (error) throw new Error(error.message);
@@ -107,8 +105,10 @@ export class UsuarioRepositoryImpl extends UsuarioRepository {
 
   async update(usuario: Usuario): Promise<void> {
     const data = this.mapper.toPersistence({ entity: usuario });
-    const client = usuario.isMaster ? this.serviceClient : this.supabase;
-    const { error } = await client.from('profiles').update(data).eq('id', data.id);
+    const { error } = await this.serviceClient
+      .from('profiles')
+      .update(data)
+      .eq('id', data.id);
     if (error) throw new Error(error.message);
   }
 

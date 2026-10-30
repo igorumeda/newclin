@@ -8,6 +8,7 @@ import {
   Activity,
   Building2,
   Globe,
+  KeyRound,
   MoreHorizontal,
   Palette,
   Pencil,
@@ -18,6 +19,7 @@ import {
   Stethoscope,
   Trash2,
   UserCheck,
+  UserPlus,
   Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -57,10 +59,18 @@ import {
   masterService,
   type ResumoMasterRedeItemDto,
 } from '@/client/services/master.service';
+import { usuarioService } from '@/client/services/usuario.service';
 import { mensagemDeErro } from '@/client/services/api-client.service';
 import { formatarData, formatarDataHora, formatarNumero } from '@/client/lib/format';
 import { Rede } from '@/modules/organization/domain/entities/rede.entity';
 import { TEMA_PRESETS } from '@/modules/organization/domain/value-objects/tema.vo';
+import { Usuario } from '@/modules/user/domain/entities/usuario.entity';
+import {
+  ROLE_DESCRIPTIONS,
+  ROLE_LABELS,
+  ROLE_VALUES,
+  type TenantRole,
+} from '@/modules/user/domain/value-objects/role.vo';
 
 type FiltrarRedesMasterParams = {
   redes: ResumoMasterRedeItemDto[];
@@ -79,6 +89,15 @@ type FormularioRedeMaster = {
   ativo: boolean;
 };
 
+type FormularioUsuarioRedeMaster = {
+  redeId: string;
+  nome: string;
+  email: string;
+  role: TenantRole;
+  telefone: string;
+  senhaInicial: string;
+};
+
 const FORMULARIO_VAZIO: FormularioRedeMaster = {
   nome: '',
   razaoSocial: '',
@@ -88,6 +107,15 @@ const FORMULARIO_VAZIO: FormularioRedeMaster = {
   telefone: '',
   presetTema: TEMA_PRESETS[0].id,
   ativo: true,
+};
+
+const FORMULARIO_USUARIO_REDE_VAZIO: FormularioUsuarioRedeMaster = {
+  redeId: '',
+  nome: '',
+  email: '',
+  role: 'admin_rede',
+  telefone: '',
+  senhaInicial: '',
 };
 
 function formatarCnpj({ cnpj }: { cnpj: string | null }): string {
@@ -153,6 +181,10 @@ export function PainelMaster() {
   const [redeAlterandoSituacao, setRedeAlterandoSituacao] =
     React.useState<ResumoMasterRedeItemDto | null>(null);
 
+  const [dialogoUsuarioAberto, setDialogoUsuarioAberto] = React.useState(false);
+  const [formularioUsuario, setFormularioUsuario] =
+    React.useState<FormularioUsuarioRedeMaster>(FORMULARIO_USUARIO_REDE_VAZIO);
+
   const consulta = useQuery({
     queryKey: ['master', 'redes', 'resumo'],
     queryFn: () => masterService.obterResumoRedes(),
@@ -217,6 +249,51 @@ export function PainelMaster() {
     onError: (erro) => toast.error(mensagemDeErro(erro)),
   });
 
+  const criarUsuarioNaRede = useMutation({
+    mutationFn: async () => {
+      if (!formularioUsuario.redeId) {
+        throw new Error('Selecione a rede em que o usuário será criado');
+      }
+
+      const validacao = Usuario.create({
+        redeId: formularioUsuario.redeId,
+        nome: formularioUsuario.nome,
+        email: formularioUsuario.email,
+        role: formularioUsuario.role,
+        telefone: formularioUsuario.telefone || null,
+      });
+
+      if (validacao.isFailure) {
+        throw validacao.error;
+      }
+
+      const usuarioValidado = validacao.value;
+
+      return usuarioService.criar({
+        redeId: usuarioValidado.redeId,
+        nome: usuarioValidado.nome.value,
+        email: usuarioValidado.email.value,
+        role: usuarioValidado.role.value,
+        telefone: usuarioValidado.telefone,
+        senhaInicial: formularioUsuario.senhaInicial.trim() || null,
+      });
+    },
+    onSuccess: (resultado) => {
+      if (resultado.conviteEnviado === false) {
+        toast.success('Usuário criado na rede e ativo para login imediato');
+      } else {
+        toast.success(
+          'Convite enviado — o usuário receberá o e-mail de primeiro acesso à rede',
+        );
+      }
+      setDialogoUsuarioAberto(false);
+      setFormularioUsuario(FORMULARIO_USUARIO_REDE_VAZIO);
+      void queryClient.invalidateQueries({ queryKey: ['master', 'redes', 'resumo'] });
+      void queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+    },
+    onError: (erro) => toast.error(mensagemDeErro(erro)),
+  });
+
   const alterarSituacaoRede = useMutation({
     mutationFn: (rede: ResumoMasterRedeItemDto) =>
       masterService.atualizarRede({
@@ -254,6 +331,16 @@ export function PainelMaster() {
     setDialogoAberto(true);
   }
 
+  function abrirNovoUsuarioNaRede(rede?: ResumoMasterRedeItemDto) {
+    const primeiraRedeId =
+      rede?.id ?? consulta.data?.redes.find((item) => item.ativo)?.id ?? '';
+    setFormularioUsuario({
+      ...FORMULARIO_USUARIO_REDE_VAZIO,
+      redeId: primeiraRedeId,
+    });
+    setDialogoUsuarioAberto(true);
+  }
+
   const colunasRedes = React.useMemo<ColumnDef<ResumoMasterRedeItemDto, unknown>[]>(
     () => [
       {
@@ -278,6 +365,11 @@ export function PainelMaster() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <p className="truncate font-semibold text-foreground">{item.nome}</p>
+                  {item.slug ? (
+                    <Badge variant="outline" className="text-[11px]">
+                      /{item.slug}
+                    </Badge>
+                  ) : null}
                 </div>
                 <p className="truncate text-xs text-muted-foreground">
                   {item.razaoSocial ?? 'Razão social não informada'}
@@ -388,6 +480,10 @@ export function PainelMaster() {
                     <Pencil aria-hidden />
                     Editar dados
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => abrirNovoUsuarioNaRede(item)}>
+                    <UserPlus aria-hidden />
+                    Novo usuário na rede
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     variante={item.ativo ? 'destructive' : undefined}
@@ -407,19 +503,28 @@ export function PainelMaster() {
         },
       },
     ],
-    [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [consulta.data?.redes],
   );
 
   const indicadores = consulta.data?.indicadores;
+  const todasRedes = React.useMemo(
+    () => consulta.data?.redes ?? [],
+    [consulta.data?.redes],
+  );
   const redesFiltradas = React.useMemo(
     () =>
       filtrarRedesMaster({
-        redes: consulta.data?.redes ?? [],
+        redes: todasRedes,
         busca,
         situacao,
       }),
-    [consulta.data?.redes, busca, situacao],
+    [todasRedes, busca, situacao],
   );
+
+  const senhaInicialUsuarioInvalida =
+    formularioUsuario.senhaInicial.trim().length > 0 &&
+    formularioUsuario.senhaInicial.trim().length < 6;
 
   return (
     <div className="space-y-5">
@@ -438,6 +543,20 @@ export function PainelMaster() {
                 aria-hidden
               />
               Atualizar
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/usuarios">
+                <ShieldCheck aria-hidden />
+                Usuários
+              </Link>
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => abrirNovoUsuarioNaRede()}
+              disabled={todasRedes.length === 0}
+            >
+              <UserPlus aria-hidden />
+              Novo usuário em rede
             </Button>
             <Button onClick={abrirNovaRede}>
               <Plus aria-hidden />
@@ -547,6 +666,7 @@ export function PainelMaster() {
         </CardContent>
       </Card>
 
+      {/* Modal de criação e edição de Rede */}
       <Dialog
         open={dialogoAberto}
         onOpenChange={(aberto) => {
@@ -756,6 +876,173 @@ export function PainelMaster() {
                 disabled={formulario.nome.trim().length < 3}
               >
                 {redeEmEdicao ? 'Salvar alterações' : 'Criar rede'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de criação de Usuário vinculado a uma Rede */}
+      <Dialog open={dialogoUsuarioAberto} onOpenChange={setDialogoUsuarioAberto}>
+        <DialogContent tamanho="md">
+          <DialogHeader>
+            <DialogTitle>Novo usuário em rede</DialogTitle>
+            <DialogDescription>
+              {ROLE_DESCRIPTIONS[formularioUsuario.role]}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            className="grid gap-4 sm:grid-cols-2"
+            onSubmit={(evento) => {
+              evento.preventDefault();
+              criarUsuarioNaRede.mutate();
+            }}
+          >
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label>Rede vinculada *</Label>
+              <Select
+                value={formularioUsuario.redeId}
+                onValueChange={(valor) =>
+                  setFormularioUsuario((anterior) => ({
+                    ...anterior,
+                    redeId: valor,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione a rede" />
+                </SelectTrigger>
+                <SelectContent>
+                  {todasRedes.map((rede) => (
+                    <SelectItem key={rede.id} value={rede.id}>
+                      {rede.nome}
+                      {!rede.ativo ? ' (Inativa)' : ''}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="usuario-rede-nome">Nome completo *</Label>
+              <Input
+                id="usuario-rede-nome"
+                value={formularioUsuario.nome}
+                onChange={(evento) =>
+                  setFormularioUsuario((anterior) => ({
+                    ...anterior,
+                    nome: evento.target.value,
+                  }))
+                }
+                placeholder="Ex.: Dra. Mariana Costa"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="usuario-rede-email">E-mail de acesso *</Label>
+              <Input
+                id="usuario-rede-email"
+                type="email"
+                value={formularioUsuario.email}
+                onChange={(evento) =>
+                  setFormularioUsuario((anterior) => ({
+                    ...anterior,
+                    email: evento.target.value,
+                  }))
+                }
+                placeholder="nome@clinica.com.br"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Papel na rede *</Label>
+              <Select
+                value={formularioUsuario.role}
+                onValueChange={(valor) =>
+                  setFormularioUsuario((anterior) => ({
+                    ...anterior,
+                    role: valor as TenantRole,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ROLE_VALUES.map((papel) => (
+                    <SelectItem key={papel} value={papel}>
+                      {ROLE_LABELS[papel]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="usuario-rede-telefone">Telefone</Label>
+              <Input
+                id="usuario-rede-telefone"
+                value={formularioUsuario.telefone}
+                onChange={(evento) =>
+                  setFormularioUsuario((anterior) => ({
+                    ...anterior,
+                    telefone: evento.target.value,
+                  }))
+                }
+                placeholder="(11) 99999-0000"
+              />
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label
+                htmlFor="usuario-rede-senha"
+                className="flex items-center gap-1.5"
+              >
+                <KeyRound className="size-3.5 text-muted-foreground" aria-hidden />
+                Senha inicial (opcional)
+              </Label>
+              <Input
+                id="usuario-rede-senha"
+                type="password"
+                value={formularioUsuario.senhaInicial}
+                onChange={(evento) =>
+                  setFormularioUsuario((anterior) => ({
+                    ...anterior,
+                    senhaInicial: evento.target.value,
+                  }))
+                }
+                placeholder="Deixe em branco para enviar convite por e-mail"
+              />
+              <p className="text-xs text-muted-foreground">
+                Informe ao menos 6 caracteres para liberar o acesso imediato à rede, ou
+                deixe em branco para enviar convite por e-mail.
+              </p>
+            </div>
+
+            <DialogFooter className="sm:col-span-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogoUsuarioAberto(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                carregando={criarUsuarioNaRede.isPending}
+                disabled={
+                  !formularioUsuario.redeId ||
+                  formularioUsuario.nome.trim().length < 3 ||
+                  !/^\S+@\S+\.\S+$/.test(formularioUsuario.email) ||
+                  senhaInicialUsuarioInvalida
+                }
+              >
+                {formularioUsuario.senhaInicial.trim().length >= 6
+                  ? 'Criar usuário ativo'
+                  : 'Enviar convite'}
               </Button>
             </DialogFooter>
           </form>

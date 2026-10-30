@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { ALL_ROLE_VALUES } from '../../../domain/value-objects/role.vo';
 
 export const listarUsuariosRequestSchema = z.object({
+  redeId: z.string().uuid().optional(),
   busca: z.string().trim().max(120).optional(),
   role: z.enum(ALL_ROLE_VALUES as [string, ...string[]]).optional(),
   ativo: z
@@ -13,6 +14,7 @@ export const listarUsuariosRequestSchema = z.object({
 });
 
 export const criarUsuarioRequestSchema = z.object({
+  redeId: z.string().uuid().nullable().optional(),
   nome: z.string().trim().min(3, 'Informe o nome completo'),
   email: z.string().trim().email('Formato de e-mail inválido'),
   role: z.enum(ALL_ROLE_VALUES as [string, ...string[]]).optional(),
