@@ -9,7 +9,7 @@ import { InvalidUserOperationError } from '../errors/user-conflict.error';
 import { UsuarioCriadoEvent } from '../events/usuario-criado.event';
 
 export type UsuarioProps = {
-  redeId: string;
+  redeId: string | null;
   nome: UserName;
   email: Email;
   role: Role;
@@ -25,7 +25,7 @@ export type UsuarioProps = {
 export type UsuarioConstructorParams = EntityConstructorParams<UsuarioProps>;
 
 export type CreateUsuarioParams = {
-  redeId: string;
+  redeId: string | null;
   nome: string;
   email: string;
   role: AppRole;
@@ -56,8 +56,12 @@ export class Usuario extends AggregateRoot<UsuarioProps> {
     super(params);
   }
 
-  get redeId(): string {
+  get redeId(): string | null {
     return this.props.redeId;
+  }
+
+  get isMaster(): boolean {
+    return this.props.redeId === null;
   }
 
   get nome(): UserName {
@@ -107,10 +111,21 @@ export class Usuario extends AggregateRoot<UsuarioProps> {
     const emailResult = Email.create(params.email);
     if (emailResult.isFailure) return Result.fail(emailResult.error);
 
-    const roleResult = Role.create(params.role);
+    const ehMaster = params.redeId === null;
+    const roleValor: AppRole = ehMaster ? 'admin_master' : params.role;
+
+    const roleResult = Role.create(roleValor);
     if (roleResult.isFailure) return Result.fail(roleResult.error);
 
     const role = roleResult.value;
+
+    if (!ehMaster && role.isMaster()) {
+      return Result.fail(
+        new InvalidUserOperationError({
+          reason: 'Usuário Master não deve possuir rede vinculada',
+        }),
+      );
+    }
 
     if (role.isProfessional() && !params.profissionalId) {
       return Result.fail(
@@ -128,8 +143,8 @@ export class Usuario extends AggregateRoot<UsuarioProps> {
         email: emailResult.value,
         role,
         telefone: params.telefone ?? null,
-        unidadesAcesso: params.unidadesAcesso ?? [],
-        profissionalId: params.profissionalId ?? null,
+        unidadesAcesso: ehMaster ? [] : (params.unidadesAcesso ?? []),
+        profissionalId: ehMaster ? null : (params.profissionalId ?? null),
         ativo: true,
         ultimoAcessoEm: null,
         authUserId: null,
@@ -163,8 +178,27 @@ export class Usuario extends AggregateRoot<UsuarioProps> {
   }
 
   public alterarRole(params: AlterarRoleParams): Result<void> {
+    if (this.isMaster) {
+      if (params.role !== 'admin_master') {
+        return Result.fail(
+          new InvalidUserOperationError({
+            reason: 'Usuário Master mantém sempre o papel de Administrador Master',
+          }),
+        );
+      }
+      return Result.ok();
+    }
+
     const roleResult = Role.create(params.role);
     if (roleResult.isFailure) return Result.fail(roleResult.error);
+
+    if (roleResult.value.isMaster()) {
+      return Result.fail(
+        new InvalidUserOperationError({
+          reason: 'Não é permitido atribuir papel de Administrador Master a um usuário de rede',
+        }),
+      );
+    }
 
     if (roleResult.value.isProfessional() && !this.props.profissionalId) {
       return Result.fail(
@@ -183,7 +217,7 @@ export class Usuario extends AggregateRoot<UsuarioProps> {
   }
 
   public definirUnidades(params: DefinirUnidadesParams): Result<void> {
-    if (this.props.role.isAdmin()) {
+    if (this.props.role.isAdmin() || this.isMaster) {
       this.props.unidadesAcesso = [];
       this.touch();
       return Result.ok();
@@ -205,11 +239,11 @@ export class Usuario extends AggregateRoot<UsuarioProps> {
       this.props.telefone = params.telefone;
     }
 
-    if (params.profissionalId !== undefined) {
+    if (!this.isMaster && params.profissionalId !== undefined) {
       this.props.profissionalId = params.profissionalId;
     }
 
-    if (params.unidadesAcesso !== undefined) {
+    if (!this.isMaster && params.unidadesAcesso !== undefined) {
       const unidadesResult = this.definirUnidades({ unidadesAcesso: params.unidadesAcesso });
       if (unidadesResult.isFailure) return Result.fail(unidadesResult.error);
     }

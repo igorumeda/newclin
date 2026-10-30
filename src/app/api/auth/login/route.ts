@@ -16,6 +16,7 @@ const loginSchema = z.object({
 });
 
 const DESTINO_POR_PAPEL: Record<string, string> = {
+  admin_master: '/dashboard',
   admin_rede: '/dashboard',
   gestor_unidade: '/dashboard',
   profissional: '/agenda',
@@ -68,8 +69,12 @@ export async function POST(request: Request): Promise<NextResponse> {
       response: resposta,
     });
 
-    const corpoResposta = resposta.body as { data?: { usuario?: { role?: string } } };
-    const papel = corpoResposta.data?.usuario?.role ?? 'recepcao';
+    const corpoResposta = resposta.body as {
+      data?: { usuario?: { role?: string; isMaster?: boolean } };
+    };
+    const papel = corpoResposta.data?.usuario?.isMaster
+      ? 'admin_master'
+      : (corpoResposta.data?.usuario?.role ?? 'recepcao');
 
     return HttpResponse.ok({
       ...(corpoResposta.data ?? {}),

@@ -1,6 +1,6 @@
 export type AuditLogModel = {
   id: string;
-  rede_id: string;
+  rede_id: string | null;
   user_id: string | null;
   user_nome: string | null;
   user_email: string | null;

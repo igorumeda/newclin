@@ -43,7 +43,7 @@ export class ConcluirCadastroUseCase extends UseCase<
     )
       return Result.fail(
         new InvalidUserOperationError({
-          reason: 'Convite sem vínculo ativo com a rede.',
+          reason: 'Convite sem vínculo ativo com a plataforma.',
         }),
       );
     const novo = Usuario.create({
@@ -76,6 +76,17 @@ export class ConcluirCadastroUseCase extends UseCase<
       telefone: dados.value.telefone,
       cadastroConcluido: true,
     });
+
+    if (usuario.isMaster) {
+      const criadoNoTrigger = await this.dependencies.usuarioRepository.findByEmail(
+        usuario.email,
+      );
+      if (!criadoNoTrigger) {
+        usuario.vincularCredenciais({ authUserId: input.authUserId });
+        await this.dependencies.usuarioRepository.save(usuario);
+      }
+    }
+
     return Result.ok({ concluido: true });
   }
 }

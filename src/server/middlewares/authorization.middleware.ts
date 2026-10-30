@@ -29,7 +29,12 @@ export class UnidadeForaDoEscopoError extends ForbiddenError {
 export function authorize(params: AuthorizeParams): Result<void> {
   const { context, allowedRoles, requiredUnitId } = params;
 
-  if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(context.role)) {
+  if (allowedRoles && allowedRoles.length > 0) {
+    if (!allowedRoles.includes(context.role)) {
+      return Result.fail(new AcessoNegadoError());
+    }
+  } else if (context.isMaster) {
+    // Rotas operacionais de clínica sem allowedRoles explícito exigem vínculo com uma rede.
     return Result.fail(new AcessoNegadoError());
   }
 

@@ -3,11 +3,16 @@
 import Link from 'next/link';
 import type { MouseEventHandler } from 'react';
 import { usePathname } from 'next/navigation';
-import { Building2 } from 'lucide-react';
+import { Building2, ShieldCheck } from 'lucide-react';
 import { cn } from '@/client/lib/utils';
 import { useAuth } from '@/client/providers/auth-provider';
 import { useOrganizacao } from '@/client/hooks/use-organizacao';
-import { NAVEGACAO, ROTULOS_GRUPO, type ItemNavegacao } from './navegacao';
+import {
+  NAVEGACAO,
+  NAVEGACAO_MASTER,
+  ROTULOS_GRUPO,
+  type ItemNavegacao,
+} from './navegacao';
 
 export type NavigationHref = string;
 export type SidebarNavigateHandler = (href: NavigationHref) => void;
@@ -23,11 +28,14 @@ const ORDEM_GRUPOS: ItemNavegacao['grupo'][] = ['operacao', 'clinico', 'gestao']
 export function AppSidebar({ aoNavegar, caminhoAtivo, className }: AppSidebarProps) {
   const pathname = usePathname();
   const caminho = caminhoAtivo ?? pathname;
-  const { pode } = useAuth();
-  const { organizacao } = useOrganizacao();
+  const { pode, redeId, ehMaster } = useAuth();
+  const { organizacao } = useOrganizacao({ enabled: Boolean(redeId && !ehMaster) });
 
-  const itens = NAVEGACAO.filter((item) => !item.permissao || pode(item.permissao));
-  const rede = organizacao;
+  const baseNavegacao = ehMaster ? NAVEGACAO_MASTER : NAVEGACAO;
+  const itens = baseNavegacao.filter(
+    (item) => !item.permissao || pode(item.permissao) || ehMaster,
+  );
+  const rede = ehMaster ? null : organizacao;
 
   return (
     <aside
@@ -46,12 +54,20 @@ export function AppSidebar({ aoNavegar, caminhoAtivo, className }: AppSidebarPro
           />
         ) : (
           <span className="flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
-            <Building2 className="size-5" aria-hidden />
+            {ehMaster ? (
+              <ShieldCheck className="size-5" aria-hidden />
+            ) : (
+              <Building2 className="size-5" aria-hidden />
+            )}
           </span>
         )}
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">{rede?.nome ?? 'Clínica'}</p>
-          <p className="truncate text-xs text-sidebar-foreground/70">Gestão clínica</p>
+          <p className="truncate text-sm font-semibold">
+            {ehMaster ? 'NewClin Master' : (rede?.nome ?? 'Clínica')}
+          </p>
+          <p className="truncate text-xs text-sidebar-foreground/70">
+            {ehMaster ? 'Administração Global' : 'Gestão clínica'}
+          </p>
         </div>
       </div>
 
@@ -66,7 +82,7 @@ export function AppSidebar({ aoNavegar, caminhoAtivo, className }: AppSidebarPro
           return (
             <div key={grupo} className="space-y-1">
               <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-sidebar-foreground/70">
-                {ROTULOS_GRUPO[grupo]}
+                {ehMaster ? 'Administração Master' : ROTULOS_GRUPO[grupo]}
               </p>
               {itensGrupo.map((item) => {
                 const ativo =
@@ -112,7 +128,7 @@ export function AppSidebar({ aoNavegar, caminhoAtivo, className }: AppSidebarPro
       </nav>
 
       <div className="border-t p-3 text-[11px] text-sidebar-foreground/70">
-        <p>Clínica SaaS v1.0</p>
+        <p>{ehMaster ? 'NewClin SaaS · Visão Multi-Rede' : 'Clínica SaaS v1.0'}</p>
       </div>
     </aside>
   );

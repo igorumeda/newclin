@@ -3,10 +3,31 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { Check, ChevronDown, LogOut, Menu, Monitor, Moon, Sun, User } from 'lucide-react';
+import {
+  Check,
+  ChevronDown,
+  Globe,
+  LogOut,
+  Menu,
+  Monitor,
+  Moon,
+  Sun,
+  User,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/client/ui/button';
-import { Avatar, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, Tooltip, TooltipContent, TooltipTrigger } from '@/client/ui/overlay';
+import {
+  Avatar,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/client/ui/overlay';
 import { ROLE_LABELS, type AppRole } from '@/modules/user/domain/value-objects/role.vo';
 import { useAuth } from '@/client/providers/auth-provider';
 import { useUnidadeAtiva } from '@/client/hooks/use-unidade-ativa';
@@ -83,7 +104,7 @@ function AlternarTema() {
 
 export function AppHeader() {
   const router = useRouter();
-  const { nome, email, papel, sair } = useAuth();
+  const { nome, email, papel, ehMaster, sair } = useAuth();
   const abrirMenuMobile = useUiStore((estado) => estado.abrirMenuMobile);
 
   const [saindo, setSaindo] = React.useState(false);
@@ -114,7 +135,14 @@ export function AppHeader() {
 
       <div className="flex-1" />
 
-      <SeletorUnidade />
+      {ehMaster ? (
+        <span className="hidden items-center gap-2 rounded-md border bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary sm:inline-flex">
+          <Globe className="size-3.5" aria-hidden />
+          Todas as redes
+        </span>
+      ) : (
+        <SeletorUnidade />
+      )}
       <AlternarTema />
 
       <DropdownMenu>
@@ -127,7 +155,11 @@ export function AppHeader() {
             <span className="hidden text-right sm:block">
               <span className="block max-w-[12rem] truncate text-sm font-medium">{nome ?? '—'}</span>
               <span className="block text-xs text-muted-foreground">
-                {papel ? ROLE_LABELS[papel as AppRole] : ''}
+                {ehMaster
+                  ? 'Administrador Master'
+                  : papel
+                    ? ROLE_LABELS[papel as AppRole]
+                    : ''}
               </span>
             </span>
             <Avatar nome={nome ?? '?'} className="size-9" />

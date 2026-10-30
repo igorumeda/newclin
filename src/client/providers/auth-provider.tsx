@@ -13,6 +13,7 @@ export type AuthContextValue = {
   email: string | null;
   papel: string | null;
   redeId: string | null;
+  ehMaster: boolean;
   unidadesAcesso: string[];
   profissionalId: string | null;
   /** Verificação de permissão para exibir/ocultar ações (§2.3). */
@@ -46,6 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(() => {
     const permissoes = data?.permissoes ?? [];
     const usuario = data?.usuario ?? null;
+    const ehMaster = Boolean(usuario && (usuario.isMaster || usuario.redeId === null));
 
     return {
       carregando: isLoading,
@@ -53,8 +55,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       usuarioId: usuario?.id ?? null,
       nome: usuario?.nome ?? null,
       email: usuario?.email ?? null,
-      papel: usuario?.role ?? null,
+      papel: ehMaster ? 'admin_master' : (usuario?.role ?? null),
       redeId: usuario?.redeId ?? null,
+      ehMaster,
       unidadesAcesso: usuario?.unidadesAcesso ?? [],
       profissionalId: usuario?.profissionalId ?? null,
       pode: (permissao: Permission) => permissoes.includes(permissao),

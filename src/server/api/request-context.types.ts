@@ -1,6 +1,17 @@
-export type AppRole = 'admin_rede' | 'gestor_unidade' | 'profissional' | 'recepcao';
+export type AppRole =
+  | 'admin_master'
+  | 'admin_rede'
+  | 'gestor_unidade'
+  | 'profissional'
+  | 'recepcao';
 
-export const APP_ROLES: AppRole[] = ['admin_rede', 'gestor_unidade', 'profissional', 'recepcao'];
+export const APP_ROLES: AppRole[] = [
+  'admin_master',
+  'admin_rede',
+  'gestor_unidade',
+  'profissional',
+  'recepcao',
+];
 
 export type RequestContext = {
   userId: string;
@@ -8,6 +19,7 @@ export type RequestContext = {
   userEmail: string;
   role: AppRole;
   redeId: string;
+  isMaster: boolean;
   unidadesAcesso: string[];
   profissionalId: string | null;
   ip: string | null;

@@ -18,6 +18,7 @@ import { EstadoVazio, TabelaSkeleton } from '@/client/ui/feedback';
 import { DataTable } from '@/client/ui/data-table';
 import { StatusAgendamentoBadge } from '@/client/ui/status-badge';
 import { GraficoLinha } from '@/client/components/shared/graficos';
+import { PainelMaster } from '@/client/components/master/painel-master';
 import { relatorioService } from '@/client/services/relatorio.service';
 import { agendaService, type AgendaItemDto } from '@/client/services/agenda.service';
 import { useUnidadeAtiva } from '@/client/hooks/use-unidade-ativa';
@@ -57,7 +58,7 @@ const colunasHoje: ColumnDef<AgendaItemDto, unknown>[] = [
 
 export default function DashboardPage() {
   const { unidadeId } = useUnidadeAtiva();
-  const { ehGestao, ehClinico } = usePermissoes();
+  const { ehMaster, ehGestao, ehClinico } = usePermissoes();
 
   const hoje = toDateInputValue(new Date());
   const trintaDiasAtras = toDateInputValue(new Date(Date.now() - 29 * 24 * 60 * 60 * 1000));
@@ -65,14 +66,14 @@ export default function DashboardPage() {
   const indicadores = useQuery({
     queryKey: ['relatorios', 'dashboard', unidadeId],
     queryFn: () => relatorioService.dashboard({ unidadeId: unidadeId ?? undefined }),
-    enabled: ehGestao,
+    enabled: ehGestao && !ehMaster,
     refetchInterval: 60 * 1000,
   });
 
   const atendimentosPeriodo = useQuery({
     queryKey: ['relatorios', 'atendimentos', unidadeId, trintaDiasAtras, hoje],
     queryFn: () => relatorioService.atendimentos({ inicio: trintaDiasAtras, fim: hoje, unidadeId: unidadeId ?? undefined }),
-    enabled: ehGestao,
+    enabled: ehGestao && !ehMaster,
   });
 
   const agendaHoje = useQuery({
@@ -82,8 +83,12 @@ export default function DashboardPage() {
         unidadeId: unidadeId ?? undefined,
         ...intervaloDoDia(hoje),
       }),
-    enabled: Boolean(unidadeId),
+    enabled: Boolean(unidadeId && !ehMaster),
   });
+
+  if (ehMaster) {
+    return <PainelMaster />;
+  }
 
   const dados = indicadores.data;
 

@@ -25,6 +25,13 @@ export class ReativarUsuarioUseCase extends UseCase<ReativarUsuarioInputDto, Rea
     const usuario = await this.usuarioRepository.findById(input.usuarioId);
     if (!usuario) return Result.fail(new UserNotFoundError({ userId: input.usuarioId }));
 
+    if (
+      input.solicitanteRedeId !== undefined &&
+      usuario.redeId !== input.solicitanteRedeId
+    ) {
+      return Result.fail(new UserNotFoundError({ userId: input.usuarioId }));
+    }
+
     const result = usuario.reativar();
     if (result.isFailure) return Result.fail(result.error);
 

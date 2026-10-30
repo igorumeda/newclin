@@ -29,6 +29,13 @@ export class AtualizarUsuarioUseCase extends UseCase<AtualizarUsuarioInputDto, A
     const usuario = await this.usuarioRepository.findById(input.usuarioId);
     if (!usuario) return Result.fail(new UserNotFoundError({ userId: input.usuarioId }));
 
+    if (
+      input.solicitanteRedeId !== undefined &&
+      usuario.redeId !== input.solicitanteRedeId
+    ) {
+      return Result.fail(new UserNotFoundError({ userId: input.usuarioId }));
+    }
+
     if (input.role && input.role !== usuario.role.value) {
       const roleResult = usuario.alterarRole({ role: input.role });
       if (roleResult.isFailure) return Result.fail(roleResult.error);
@@ -48,7 +55,9 @@ export class AtualizarUsuarioUseCase extends UseCase<AtualizarUsuarioInputDto, A
       await this.identityProvider.atualizarUsuario({
         authUserId: usuario.authUserId,
         nome: usuario.nome.value,
+        redeId: usuario.redeId,
         role: usuario.role.value,
+        telefone: usuario.telefone,
         unidadesAcesso: usuario.unidadesAcesso,
         profissionalId: usuario.profissionalId,
       });

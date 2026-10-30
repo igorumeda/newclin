@@ -29,6 +29,7 @@ export function createUsuarioModule(dependencies: UsuarioModuleDependencies) {
 
   const usuarioRepository = new UsuarioRepositoryImpl({
     supabase: dependencies.supabase,
+    serviceClient: dependencies.serviceClient,
     mapper: persistenceMapper,
   });
 
@@ -52,6 +53,7 @@ export function createUsuarioModule(dependencies: UsuarioModuleDependencies) {
   const concluirCadastro = new ConcluirCadastroUseCase({
     usuarioRepository: new UsuarioRepositoryImpl({
       supabase: dependencies.serviceClient,
+      serviceClient: dependencies.serviceClient,
       mapper: persistenceMapper,
     }),
     identityProvider,

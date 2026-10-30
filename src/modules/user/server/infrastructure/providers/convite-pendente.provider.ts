@@ -3,11 +3,11 @@ import { z } from 'zod';
 import type { CreateUsuarioParams } from '../../../domain/entities/usuario.entity';
 
 const conviteSchema = z.object({
-  rede_id: z.string().uuid(),
+  rede_id: z.string().uuid().nullable(),
   nome: z.string(),
-  role: z.enum(['admin_rede', 'gestor_unidade', 'profissional', 'recepcao']),
-  unidades_acesso: z.array(z.string().uuid()),
-  profissional_id: z.string().uuid().nullable(),
+  role: z.enum(['admin_master', 'admin_rede', 'gestor_unidade', 'profissional', 'recepcao']),
+  unidades_acesso: z.array(z.string().uuid()).default([]),
+  profissional_id: z.string().uuid().nullable().default(null),
 });
 type ObterConviteParams = { user: User; serviceClient: SupabaseClient };
 type ConvitePendente = { usuarioId?: string; convite: CreateUsuarioParams };
@@ -27,9 +27,9 @@ export async function obterConvitePendente({
         redeId: value.rede_id,
         nome: value.nome,
         email: user.email,
-        role: value.role,
-        unidadesAcesso: value.unidades_acesso,
-        profissionalId: value.profissional_id,
+        role: value.rede_id === null ? 'admin_master' : value.role,
+        unidadesAcesso: value.rede_id === null ? [] : value.unidades_acesso,
+        profissionalId: value.rede_id === null ? null : value.profissional_id,
       },
     };
   }
@@ -51,10 +51,10 @@ export async function obterConvitePendente({
       redeId: legacy.data.rede_id,
       nome: legacy.data.nome,
       email: user.email,
-      role: legacy.data.role,
+      role: legacy.data.rede_id === null ? 'admin_master' : legacy.data.role,
       telefone: data.telefone,
-      unidadesAcesso: legacy.data.unidades_acesso,
-      profissionalId: legacy.data.profissional_id,
+      unidadesAcesso: legacy.data.rede_id === null ? [] : legacy.data.unidades_acesso,
+      profissionalId: legacy.data.rede_id === null ? null : legacy.data.profissional_id,
     },
   };
 }

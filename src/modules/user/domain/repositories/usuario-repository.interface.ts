@@ -2,7 +2,7 @@ import type { Usuario } from '../entities/usuario.entity';
 import type { Email } from '../value-objects/email.vo';
 
 export type UsuarioId = string;
-export type RedeId = string;
+export type RedeId = string | null;
 
 export type ListarUsuariosFiltro = {
   redeId: RedeId;

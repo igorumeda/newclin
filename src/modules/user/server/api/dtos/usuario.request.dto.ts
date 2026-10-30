@@ -1,9 +1,9 @@
 import { z } from 'zod';
-import { ROLE_VALUES } from '../../../domain/value-objects/role.vo';
+import { ALL_ROLE_VALUES } from '../../../domain/value-objects/role.vo';
 
 export const listarUsuariosRequestSchema = z.object({
   busca: z.string().trim().max(120).optional(),
-  role: z.enum(ROLE_VALUES as [string, ...string[]]).optional(),
+  role: z.enum(ALL_ROLE_VALUES as [string, ...string[]]).optional(),
   ativo: z
     .enum(['true', 'false'])
     .optional()
@@ -15,16 +15,22 @@ export const listarUsuariosRequestSchema = z.object({
 export const criarUsuarioRequestSchema = z.object({
   nome: z.string().trim().min(3, 'Informe o nome completo'),
   email: z.string().trim().email('Formato de e-mail inválido'),
-  role: z.enum(ROLE_VALUES as [string, ...string[]]),
+  role: z.enum(ALL_ROLE_VALUES as [string, ...string[]]).optional(),
   telefone: z.string().trim().max(20).nullable().optional(),
   unidadesAcesso: z.array(z.string().uuid()).optional(),
   profissionalId: z.string().uuid().nullable().optional(),
+  senhaInicial: z
+    .string()
+    .min(6, 'A senha deve ter ao menos 6 caracteres')
+    .max(72)
+    .nullable()
+    .optional(),
 });
 
 export const atualizarUsuarioRequestSchema = z.object({
   nome: z.string().trim().min(3, 'Informe o nome completo').optional(),
   telefone: z.string().trim().max(20).nullable().optional(),
-  role: z.enum(ROLE_VALUES as [string, ...string[]]).optional(),
+  role: z.enum(ALL_ROLE_VALUES as [string, ...string[]]).optional(),
   unidadesAcesso: z.array(z.string().uuid()).optional(),
   profissionalId: z.string().uuid().nullable().optional(),
 });

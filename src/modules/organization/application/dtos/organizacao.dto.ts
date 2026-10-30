@@ -12,6 +12,11 @@ import type {
 } from '../../domain/value-objects/tema.vo';
 import type { RedeConfig, RedeConfigParcial } from '../../domain/entities/rede.entity';
 import type { EnderecoProps } from '../../domain/value-objects/endereco.vo';
+import type {
+  ResumoMasterIndicadores,
+  ResumoMasterRedeItem,
+  ResumoMasterRedes,
+} from '../../domain/repositories/rede-repository.interface';
 
 // ── Organização (rede) ──────────────────────────────────────────────────────
 export type ObterOrganizacaoInputDto = { redeId: string };
@@ -79,6 +84,16 @@ export type DefinirLogotipoOutputDto = {
   logotipoUrl: string | null;
   logotipoPath: string | null;
 };
+
+// ── Visão Geral Master (todas as redes) ─────────────────────────────────────
+export type ObterResumoMasterInputDto = {
+  isMaster: boolean;
+};
+
+export type ResumoMasterIndicadoresDto = ResumoMasterIndicadores;
+export type ResumoMasterRedeItemDto = ResumoMasterRedeItem;
+export type ResumoMasterRedesDto = ResumoMasterRedes;
+export type ObterResumoMasterOutputDto = ResumoMasterRedesDto;
 
 // ── Unidades ────────────────────────────────────────────────────────────────
 export type UnidadeDto = {

@@ -12,7 +12,7 @@ export const PAPEIS_GESTAO: AppRole[] = ['admin_rede', 'gestor_unidade'];
  * Nunca substituem a verificação do servidor: apenas escondem ações indisponíveis.
  */
 export function usePermissoes() {
-  const { papel, pode } = useAuth();
+  const { papel, ehMaster, pode } = useAuth();
 
   const ehAdmin = papel === 'admin_rede';
   const ehGestao = papel ? PAPEIS_GESTAO.includes(papel as AppRole) : false;
@@ -23,12 +23,13 @@ export function usePermissoes() {
   return {
     papel,
     pode,
+    ehMaster,
     ehAdmin,
     ehGestao,
     ehClinico,
     ehRecepcao,
     ehProfissional,
-    /** Recepção não acessa conteúdo clínico (§2.4). */
+    /** Recepção e Master não operam conteúdo clínico de prontuário (§2.4). */
     podeVerProntuario: ehClinico,
     podeEmitirDocumento: pode('documentos:emitir'),
     podeGerenciarUsuarios: pode('usuarios:gerenciar'),

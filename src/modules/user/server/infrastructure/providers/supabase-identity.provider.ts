@@ -33,7 +33,10 @@ export class SupabaseIdentityProvider extends IdentityProvider {
         email: params.email,
         password: params.senhaInicial,
         email_confirm: true,
-        user_metadata: metadata,
+        user_metadata: {
+          ...metadata,
+          ...(params.telefone !== undefined ? { telefone: params.telefone } : {}),
+        },
       });
       if (error)
         throw this.translateError({ message: error.message, email: params.email });
@@ -43,7 +46,11 @@ export class SupabaseIdentityProvider extends IdentityProvider {
     const { data, error } = await this.serviceClient.auth.admin.inviteUserByEmail(
       params.email,
       {
-        data: { ...metadata, cadastro_pendente: true },
+        data: {
+          ...metadata,
+          ...(params.telefone !== undefined ? { telefone: params.telefone } : {}),
+          cadastro_pendente: true,
+        },
         redirectTo: params.redirectTo,
       },
     );
@@ -58,7 +65,7 @@ export class SupabaseIdentityProvider extends IdentityProvider {
     const redeConvidada = data.user.app_metadata.convite?.rede_id;
     if (
       data.user.app_metadata.cadastro_concluido === true ||
-      (redeConvidada && redeConvidada !== params.redeId)
+      (redeConvidada !== undefined && redeConvidada !== params.redeId)
     )
       throw new EmailAlreadyInUseError({ email: params.email });
 
@@ -80,7 +87,7 @@ export class SupabaseIdentityProvider extends IdentityProvider {
     const metadata = this.buildMetadata({
       email: params.email ?? '',
       nome: params.nome ?? '',
-      redeId: params.redeId ?? '',
+      redeId: params.redeId ?? null,
       role: params.role ?? 'recepcao',
       unidadesAcesso: params.unidadesAcesso ?? [],
       profissionalId: params.profissionalId ?? null,
@@ -115,10 +122,11 @@ export class SupabaseIdentityProvider extends IdentityProvider {
   private buildMetadata(params: CriarCredenciaisParams): Record<string, unknown> {
     return {
       rede_id: params.redeId,
-      role: params.role,
+      is_master: params.redeId === null,
+      role: params.redeId === null ? 'admin_master' : params.role,
       nome: params.nome,
-      unidades_acesso: params.unidadesAcesso,
-      profissional_id: params.profissionalId,
+      unidades_acesso: params.redeId === null ? [] : params.unidadesAcesso,
+      profissional_id: params.redeId === null ? null : params.profissionalId,
     };
   }
 

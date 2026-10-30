@@ -19,6 +19,8 @@ import type {
   ListarUnidadesOutputDto,
   ObterOrganizacaoInputDto,
   ObterOrganizacaoOutputDto,
+  ObterResumoMasterInputDto,
+  ObterResumoMasterOutputDto,
 } from '../../../application/dtos/organizacao.dto';
 
 export type OrganizacaoControllerDependencies = {
@@ -30,10 +32,12 @@ export type OrganizacaoControllerDependencies = {
   criarUnidade: IUseCase<CriarUnidadeInputDto, CriarUnidadeOutputDto>;
   atualizarUnidade: IUseCase<AtualizarUnidadeInputDto, AtualizarUnidadeOutputDto>;
   inativarUnidade: IUseCase<InativarUnidadeInputDto, InativarUnidadeOutputDto>;
+  obterResumoMaster: IUseCase<ObterResumoMasterInputDto, ObterResumoMasterOutputDto>;
 };
 
 export type OrganizacaoControllerRequest =
   | { action: 'obter'; context: RequestContext }
+  | { action: 'resumo-master'; context: RequestContext }
   | { action: 'atualizar'; context: RequestContext; input: Omit<AtualizarOrganizacaoInputDto, 'redeId'> }
   | { action: 'atualizar-tema'; context: RequestContext; input: Omit<AtualizarTemaInputDto, 'redeId'> }
   | { action: 'definir-logotipo'; context: RequestContext; input: Omit<DefinirLogotipoInputDto, 'redeId'> }
@@ -63,6 +67,8 @@ export class OrganizacaoController extends Controller<OrganizacaoControllerReque
     switch (request.action) {
       case 'obter':
         return this.obter(request.context);
+      case 'resumo-master':
+        return this.resumoMaster(request.context);
       case 'atualizar':
         return this.atualizar(request);
       case 'atualizar-tema':
@@ -81,7 +87,17 @@ export class OrganizacaoController extends Controller<OrganizacaoControllerReque
   }
 
   private async obter(context: RequestContext): Promise<HttpResponse> {
-    const result = await this.dependencies.obterOrganizacao.execute({ redeId: context.redeId });
+    const result = await this.dependencies.obterOrganizacao.execute({
+      redeId: context.redeId ?? '',
+    });
+    if (result.isFailure) return HttpResponse.fromDomainError(result.error);
+    return HttpResponse.ok(result.value);
+  }
+
+  private async resumoMaster(context: RequestContext): Promise<HttpResponse> {
+    const result = await this.dependencies.obterResumoMaster.execute({
+      isMaster: context.isMaster,
+    });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
     return HttpResponse.ok(result.value);
   }
@@ -91,7 +107,7 @@ export class OrganizacaoController extends Controller<OrganizacaoControllerReque
   ): Promise<HttpResponse> {
     const result = await this.dependencies.atualizarOrganizacao.execute({
       ...request.input,
-      redeId: request.context.redeId,
+      redeId: request.context.redeId ?? '',
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
     return HttpResponse.ok(result.value);
@@ -102,7 +118,7 @@ export class OrganizacaoController extends Controller<OrganizacaoControllerReque
   ): Promise<HttpResponse> {
     const result = await this.dependencies.atualizarTema.execute({
       ...request.input,
-      redeId: request.context.redeId,
+      redeId: request.context.redeId ?? '',
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
     return HttpResponse.ok(result.value);
@@ -113,7 +129,7 @@ export class OrganizacaoController extends Controller<OrganizacaoControllerReque
   ): Promise<HttpResponse> {
     const result = await this.dependencies.definirLogotipo.execute({
       ...request.input,
-      redeId: request.context.redeId,
+      redeId: request.context.redeId ?? '',
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
     return HttpResponse.ok(result.value);
@@ -124,7 +140,7 @@ export class OrganizacaoController extends Controller<OrganizacaoControllerReque
   ): Promise<HttpResponse> {
     const result = await this.dependencies.listarUnidades.execute({
       ...request.input,
-      redeId: request.context.redeId,
+      redeId: request.context.redeId ?? '',
       unidadeIdsRestritas:
         request.context.role === 'admin_rede' ? undefined : request.context.unidadesAcesso,
     });
@@ -137,7 +153,7 @@ export class OrganizacaoController extends Controller<OrganizacaoControllerReque
   ): Promise<HttpResponse> {
     const result = await this.dependencies.criarUnidade.execute({
       ...request.input,
-      redeId: request.context.redeId,
+      redeId: request.context.redeId ?? '',
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
     return HttpResponse.created(result.value);

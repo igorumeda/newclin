@@ -1,13 +1,24 @@
 import { ValueObject } from '@core/domain/value-object.base';
 import { Result } from '@core/domain/result';
 
-export type AppRole = 'admin_rede' | 'gestor_unidade' | 'profissional' | 'recepcao';
+export type TenantRole = 'admin_rede' | 'gestor_unidade' | 'profissional' | 'recepcao';
+export type AppRole = 'admin_master' | TenantRole;
 export type RoleValue = AppRole;
 export type RoleProps = { value: RoleValue };
 
-export const ROLE_VALUES: AppRole[] = ['admin_rede', 'gestor_unidade', 'profissional', 'recepcao'];
+/** Papéis atribuíveis dentro de uma rede clínica. */
+export const ROLE_VALUES: TenantRole[] = [
+  'admin_rede',
+  'gestor_unidade',
+  'profissional',
+  'recepcao',
+];
+
+/** Todos os papéis válidos da plataforma (incluindo Administrador Master). */
+export const ALL_ROLE_VALUES: AppRole[] = ['admin_master', ...ROLE_VALUES];
 
 export const ROLE_LABELS: Record<AppRole, string> = {
+  admin_master: 'Administrador Master',
   admin_rede: 'Admin da Rede',
   gestor_unidade: 'Gestor de Unidade',
   profissional: 'Médico/Profissional',
@@ -15,14 +26,20 @@ export const ROLE_LABELS: Record<AppRole, string> = {
 };
 
 export const ROLE_DESCRIPTIONS: Record<AppRole, string> = {
+  admin_master:
+    'Acesso global à plataforma: visão geral e estatísticas de todas as redes e gestão de usuários Master.',
   admin_rede: 'Acesso total à rede, configurações, usuários e relatórios.',
   gestor_unidade: 'Gerencia agenda, pacientes e relatórios das unidades atribuídas.',
-  profissional: 'Acessa a própria agenda, prontuários dos pacientes que atende e emite documentos.',
-  recepcao: 'Opera agenda e cadastro das unidades atribuídas, sem acesso ao conteúdo clínico.',
+  profissional:
+    'Acessa a própria agenda, prontuários dos pacientes que atende e emite documentos.',
+  recepcao:
+    'Opera agenda e cadastro das unidades atribuídas, sem acesso ao conteúdo clínico.',
 };
 
 /** Permissões granulares reutilizadas pelo client (UI) e pelo server (API). */
 export const PERMISSIONS = [
+  'master:redes:ler',
+  'master:usuarios:gerenciar',
   'organizacao:ler',
   'organizacao:editar',
   'tema:editar',
@@ -57,8 +74,19 @@ export const PERMISSIONS = [
 
 export type Permission = (typeof PERMISSIONS)[number];
 
+const TENANT_ADMIN_PERMISSIONS: Permission[] = PERMISSIONS.filter(
+  (permissao) => !permissao.startsWith('master:'),
+);
+
 const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
-  admin_rede: [...PERMISSIONS],
+  admin_master: [
+    'master:redes:ler',
+    'master:usuarios:gerenciar',
+    'usuarios:ler',
+    'usuarios:gerenciar',
+    'relatorios:ler',
+  ],
+  admin_rede: TENANT_ADMIN_PERMISSIONS,
   gestor_unidade: [
     'organizacao:ler',
     'pacientes:ler',
@@ -131,8 +159,12 @@ export class Role extends ValueObject<RoleProps> {
     return ROLE_PERMISSIONS[this.props.value];
   }
 
+  public isMaster(): boolean {
+    return this.props.value === 'admin_master';
+  }
+
   public isAdmin(): boolean {
-    return this.props.value === 'admin_rede';
+    return this.props.value === 'admin_rede' || this.props.value === 'admin_master';
   }
 
   public isProfessional(): boolean {
@@ -145,11 +177,11 @@ export class Role extends ValueObject<RoleProps> {
 
   /** A recepção nunca acessa o conteúdo clínico do prontuário (§3.2). */
   public hasClinicalAccess(): boolean {
-    return this.props.value !== 'recepcao';
+    return this.props.value !== 'recepcao' && this.props.value !== 'admin_master';
   }
 
   public static create(value: string): Result<Role> {
-    if (!ROLE_VALUES.includes(value as AppRole)) {
+    if (!ALL_ROLE_VALUES.includes(value as AppRole)) {
       return Result.fail(new Error(`Papel inválido: "${value}"`));
     }
     return Result.ok(new Role({ value: value as AppRole }));

@@ -15,10 +15,9 @@ export type CriarUsuarioDependencies = {
 };
 
 /**
- * Provisiona o acesso de um usuário à rede:
+ * Provisiona o acesso de um usuário à rede ou como Administrador Master:
  * 1. valida e cria a entidade (papel, unidades, vínculo com profissional);
- * 2. envia o convite, sem persistir um usuário na plataforma.
- * O profile é criado somente na conclusão do cadastro.
+ * 2. envia o convite ou cria o acesso direto com senha inicial no Auth.
  */
 export class CriarUsuarioUseCase extends UseCase<
   CriarUsuarioInputDto,
@@ -42,11 +41,15 @@ export class CriarUsuarioUseCase extends UseCase<
       return Result.fail(new EmailAlreadyInUseError({ email: emailResult.value.value }));
     }
 
+    const papelEfetivo = (
+      input.redeId === null ? 'admin_master' : (input.role ?? 'recepcao')
+    ) as AppRole;
+
     const usuarioResult = Usuario.create({
       redeId: input.redeId,
       nome: input.nome,
       email: input.email,
-      role: input.role as AppRole,
+      role: papelEfetivo,
       telefone: input.telefone ?? null,
       unidadesAcesso: input.unidadesAcesso ?? [],
       profissionalId: input.profissionalId ?? null,
@@ -60,10 +63,22 @@ export class CriarUsuarioUseCase extends UseCase<
       nome: usuario.nome.value,
       redeId: usuario.redeId,
       role: usuario.role.value,
+      telefone: usuario.telefone,
       unidadesAcesso: usuario.unidadesAcesso,
       profissionalId: usuario.profissionalId,
       redirectTo: input.appUrl,
+      senhaInicial: input.senhaInicial ? input.senhaInicial : undefined,
     });
+
+    // Quando criado com senha inicial (ex.: Administrador Master), garante que o
+    // registro em `profiles` esteja persistido caso o trigger ainda não o tenha criado.
+    if (!credenciais.conviteEnviado && credenciais.authUserId) {
+      const criadoNoTrigger = await this.usuarioRepository.findByEmail(usuario.email);
+      if (!criadoNoTrigger) {
+        usuario.vincularCredenciais({ authUserId: credenciais.authUserId });
+        await this.usuarioRepository.save(usuario);
+      }
+    }
 
     return Result.ok({
       conviteEnviado: credenciais.conviteEnviado,

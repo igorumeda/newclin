@@ -7,10 +7,11 @@ export type { UsuarioDto, AuditoriaDto };
 export type UsuarioPayload = {
   nome: string;
   email: string;
-  role: string;
+  role?: string;
   telefone?: string | null;
   unidadesAcesso?: string[];
   profissionalId?: string | null;
+  senhaInicial?: string | null;
 };
 
 export const usuarioService = {

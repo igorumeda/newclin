@@ -8,7 +8,7 @@ import type { AuditRequestOptions, RequestContext } from '../api/request-context
 import { Result } from '@core/domain/result';
 
 export type AuditEntryInput = {
-  redeId: string;
+  redeId: string | null;
   userId: string;
   userName: string;
   userEmail: string;
@@ -42,7 +42,7 @@ export function buildAuditEntry(params: BuildAuditEntryParams): AuditEntryInput 
   const unidadeId = typeof data.unidadeId === 'string' ? data.unidadeId : null;
 
   return {
-    redeId: context.redeId,
+    redeId: context.isMaster ? null : context.redeId,
     userId: context.userId,
     userName: context.userName,
     userEmail: context.userEmail,

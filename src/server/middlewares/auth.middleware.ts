@@ -1,7 +1,8 @@
 /**
  * Middleware de autenticação.
  * Valida a sessão do Supabase (cookies) e monta o RequestContext com os dados
- * de isolamento multi-tenant (rede + unidades + papel).
+ * de isolamento multi-tenant (rede + unidades + papel) ou de Administrador Master
+ * quando `rede_id` é nulo.
  */
 import { Result } from '@core/domain/result';
 import { UnauthorizedError } from '@core/domain/errors/unauthorized.error';
@@ -16,7 +17,7 @@ export type AuthenticateParams = {
 
 export type ProfileRow = {
   id: string;
-  rede_id: string;
+  rede_id: string | null;
   nome: string;
   email: string;
   role: AppRole;
@@ -71,14 +72,17 @@ export async function authenticate(
       return Result.fail(new UsuarioSemVinculoError());
     }
 
+    const isMaster = profile.rede_id === null;
+
     return Result.ok({
       userId: profile.id,
       userName: profile.nome,
       userEmail: profile.email,
-      role: profile.role,
-      redeId: profile.rede_id,
-      unidadesAcesso: profile.unidades_acesso ?? [],
-      profissionalId: profile.profissional_id,
+      role: isMaster ? 'admin_master' : profile.role,
+      redeId: profile.rede_id ?? '',
+      isMaster,
+      unidadesAcesso: isMaster ? [] : (profile.unidades_acesso ?? []),
+      profissionalId: isMaster ? null : profile.profissional_id,
       ip: params.ip,
       userAgent: params.userAgent,
     });

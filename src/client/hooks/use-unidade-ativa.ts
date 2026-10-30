@@ -20,24 +20,28 @@ export type UseUnidadeAtivaResult = {
 
 /**
  * Unidade ativa do usuário: considera as unidades permitidas (`unidades_acesso`)
- * e mantém a escolha entre navegações. Perfis com uma única unidade não veem seletor.
+ * e mantém a escolha entre navegações. Perfis com uma única unidade ou
+ * Administradores Master (`redeId === null`) não consultam nem veem seletor.
  */
 export function useUnidadeAtiva(): UseUnidadeAtivaResult {
-  const { unidadesAcesso, carregando: carregandoAuth } = useAuth();
+  const { redeId, ehMaster, unidadesAcesso, carregando: carregandoAuth } = useAuth();
   const { unidadeId, definirUnidade } = useUnidadeStore();
+
+  const podeConsultarUnidades = Boolean(!carregandoAuth && redeId && !ehMaster);
 
   const { data, isLoading } = useQuery({
     queryKey: ['organizacao', 'unidades', { ativo: true }],
     queryFn: () => organizacaoService.listarUnidades({ ativo: true }),
     staleTime: 10 * 60 * 1000,
-    enabled: !carregandoAuth,
+    enabled: podeConsultarUnidades,
   });
 
   const unidades = useMemo(() => {
+    if (!podeConsultarUnidades) return [];
     const lista = data ?? [];
     const permitidas = unidadesAcesso ?? [];
     return permitidas.length > 0 ? lista.filter((unidade) => permitidas.includes(unidade.id)) : lista;
-  }, [data, unidadesAcesso]);
+  }, [data, podeConsultarUnidades, unidadesAcesso]);
 
   useEffect(() => {
     if (unidades.length === 0) return;
@@ -55,7 +59,7 @@ export function useUnidadeAtiva(): UseUnidadeAtivaResult {
     unidade,
     unidadeId: unidade?.id ?? null,
     timezone: unidade?.timezone ?? 'America/Sao_Paulo',
-    carregando: isLoading || carregandoAuth,
+    carregando: (podeConsultarUnidades && isLoading) || carregandoAuth,
     definirUnidade,
     multiplas: unidades.length > 1,
   };

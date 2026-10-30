@@ -13,6 +13,9 @@ export type UsuarioToPersistenceParams = ToPersistenceParams<Usuario>;
 
 export class UsuarioPersistenceMapper extends PersistenceMapper<Usuario, ProfileModel, ProfileModelData> {
   public toDomain({ record }: UsuarioToDomainParams): Usuario {
+    const roleValor: AppRole =
+      record.rede_id === null ? 'admin_master' : (record.role as AppRole);
+
     return Usuario.reconstitute({
       id: Identifier.fromExisting(record.id),
       createdAt: new Date(record.created_at),
@@ -21,7 +24,7 @@ export class UsuarioPersistenceMapper extends PersistenceMapper<Usuario, Profile
         redeId: record.rede_id,
         nome: UserName.reconstitute(record.nome),
         email: Email.reconstitute(record.email),
-        role: Role.reconstitute(record.role as AppRole),
+        role: Role.reconstitute(roleValor),
         telefone: record.telefone,
         unidadesAcesso: record.unidades_acesso ?? [],
         profissionalId: record.profissional_id,
@@ -39,7 +42,7 @@ export class UsuarioPersistenceMapper extends PersistenceMapper<Usuario, Profile
       rede_id: usuario.redeId,
       nome: usuario.nome.value,
       email: usuario.email.value,
-      role: usuario.role.value,
+      role: usuario.isMaster ? 'admin_master' : usuario.role.value,
       telefone: usuario.telefone,
       unidades_acesso: usuario.unidadesAcesso,
       profissional_id: usuario.profissionalId,

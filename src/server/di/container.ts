@@ -62,7 +62,7 @@ function buildContainer() {
 
   const auditRecorder: AuditRecorder = async (params) => {
     const entry = {
-      redeId: params.context.redeId,
+      redeId: params.context.isMaster ? null : params.context.redeId,
       userId: params.context.userId,
       userName: params.context.userName,
       userEmail: params.context.userEmail,

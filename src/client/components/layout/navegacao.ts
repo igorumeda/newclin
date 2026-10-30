@@ -37,6 +37,23 @@ export const NAVEGACAO: ItemNavegacao[] = [
   { titulo: 'Configurações', href: '/configuracoes', icone: ScrollText, permissao: 'tema:editar', grupo: 'gestao' },
 ];
 
+export const NAVEGACAO_MASTER: ItemNavegacao[] = [
+  {
+    titulo: 'Visão Geral das Redes',
+    href: '/dashboard',
+    icone: LayoutDashboard,
+    permissao: 'master:redes:ler',
+    grupo: 'gestao',
+  },
+  {
+    titulo: 'Usuários Master',
+    href: '/usuarios',
+    icone: ShieldCheck,
+    permissao: 'master:usuarios:gerenciar',
+    grupo: 'gestao',
+  },
+];
+
 export const ROTULOS_GRUPO: Record<ItemNavegacao['grupo'], string> = {
   operacao: 'Operação',
   clinico: 'Clínico',

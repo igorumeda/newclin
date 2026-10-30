@@ -2,9 +2,10 @@
 -- Clínica SaaS v1.0 — Dados de demonstração (apenas ambiente local)
 -- =============================================================================
 -- Executado por `supabase db reset`. Cria uma rede completa com unidades,
--- profissionais, pacientes, agenda e usuários para os quatro papéis.
+-- profissionais, pacientes, agenda e usuários para os quatro papéis + Master.
 --
 -- Credenciais dos usuários de demonstração (senha: ChangeMe!2026):
+--   master@clinica.exemplo.com    → Administrador Master (sem rede vinculada)
 --   admin@clinica.exemplo.com     → Admin da Rede
 --   gestor@clinica.exemplo.com    → Gestor de Unidade
 --   medico@clinica.exemplo.com    → Médico/Profissional
@@ -193,6 +194,11 @@ begin
     email_change_token_current, phone_change, phone_change_token, reauthentication_token
   )
   values
+    ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa0', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+     'master@clinica.exemplo.com', v_senha, timezone('utc', now()),
+     '{"provider":"email","providers":["email"]}',
+     jsonb_build_object('rede_id', null, 'role', 'admin_master', 'is_master', true, 'nome', 'Administrador Master NewClin', 'unidades_acesso', '[]'::jsonb)::jsonb,
+     timezone('utc', now()), timezone('utc', now()), '', '', '', '', '', '', '', ''),
     ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
      'admin@clinica.exemplo.com', v_senha, timezone('utc', now()),
      '{"provider":"email","providers":["email"]}',
@@ -230,6 +236,7 @@ begin
            'email', u.id::text, timezone('utc', now()), timezone('utc', now()), timezone('utc', now())
       from auth.users u
      where u.id in (
+       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa0',
        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1',
        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2',
        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3',
@@ -243,6 +250,7 @@ begin
            'email', u.id::text, timezone('utc', now()), timezone('utc', now()), timezone('utc', now())
       from auth.users u
      where u.id in (
+       'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa0',
        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1',
        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa2',
        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa3',

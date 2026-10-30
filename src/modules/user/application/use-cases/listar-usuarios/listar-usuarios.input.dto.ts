@@ -1,5 +1,5 @@
 export type ListarUsuariosInputDto = {
-  redeId: string;
+  redeId: string | null;
   busca?: string | null;
   role?: string | null;
   ativo?: boolean | null;

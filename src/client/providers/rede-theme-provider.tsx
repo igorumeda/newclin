@@ -20,6 +20,7 @@ export function RedeThemeProvider({ children }: RedeThemeProviderProps) {
   const pathname = usePathname();
   const {
     redeId,
+    ehMaster,
     carregando: carregandoPerfil,
     perfil,
     atualizarPerfil,
@@ -29,7 +30,7 @@ export function RedeThemeProvider({ children }: RedeThemeProviderProps) {
     organizacao,
     erro: erroOrganizacao,
     recarregar,
-  } = useOrganizacao({ enabled: Boolean(redeId) });
+  } = useOrganizacao({ enabled: Boolean(redeId && !ehMaster) });
   const [pronta, setPronta] = useState<string | null>(null);
   const [erroLogo, setErroLogo] = useState(false);
   const [tentativa, setTentativa] = useState(0);
@@ -47,7 +48,13 @@ export function RedeThemeProvider({ children }: RedeThemeProviderProps) {
   );
 
   useEffect(() => {
-    if (!organizacao || !chave) return;
+    if (!ehMaster) return;
+    document.getElementById(REDE_TEMA_STYLE_ID)?.remove();
+    removerFaviconDaRede();
+  }, [ehMaster]);
+
+  useEffect(() => {
+    if (ehMaster || !organizacao || !chave) return;
     const controller = new AbortController();
     setErroLogo(false);
     aplicarTemaDaRede({ tema: organizacao.tema });
@@ -61,21 +68,25 @@ export function RedeThemeProvider({ children }: RedeThemeProviderProps) {
         if (!controller.signal.aborted) setErroLogo(true);
       });
     return () => controller.abort();
-  }, [organizacao, chave, tentativa]);
+  }, [ehMaster, organizacao, chave, tentativa]);
 
   useEffect(() => {
-    if (!organizacao || pronta !== chave) return;
+    if (ehMaster || !organizacao || pronta !== chave) return;
     aplicarFaviconDaRede({ url: organizacao.logotipoUrl });
-  }, [pathname, organizacao, pronta, chave]);
+  }, [pathname, ehMaster, organizacao, pronta, chave]);
+
+  // Usuário Master não pertence a uma rede específica: libera com tema padrão do sistema.
+  if (ehMaster && perfil) return <>{children}</>;
 
   if (chave && pronta === chave && perfil) return <>{children}</>;
 
   const erro =
     !carregandoPerfil &&
     (!perfil ||
-      erroOrganizacao ||
-      erroLogo ||
-      (organizacao && organizacao.id !== redeId));
+      (!ehMaster &&
+        (erroOrganizacao ||
+          erroLogo ||
+          (organizacao && organizacao.id !== redeId))));
   return (
     <div className="auth-screen flex min-h-screen items-center justify-center bg-background px-4 text-foreground">
       <div className="flex max-w-md flex-col items-center gap-4 text-center">

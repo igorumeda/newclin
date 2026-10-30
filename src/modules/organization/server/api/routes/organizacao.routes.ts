@@ -1,7 +1,7 @@
 /**
  * Rotas HTTP do módulo organização.
  * Cada função faz o parse do formato HTTP (Zod), delega ao controller e é
- * exportada pelos route handlers em `src/app/api/v1/**`.
+ * exportada pelos route handlers em `src/app/api/**`.
  */
 import type { NextResponse } from 'next/server';
 import { handleRoute } from '@/server/api/route-adapter';
@@ -15,6 +15,17 @@ import {
 } from '../dtos/organizacao.request.dto';
 
 const ADMIN = ['admin_rede'] as const;
+const MASTER = ['admin_master'] as const;
+
+export async function obterResumoMasterRoute(request: Request): Promise<NextResponse> {
+  const controllers = lazyControllers();
+  return handleRoute({
+    request,
+    allowedRoles: [...MASTER],
+    handler: async ({ context }) =>
+      controllers.organizacao.handle({ action: 'resumo-master', context }),
+  });
+}
 
 export async function obterOrganizacaoRoute(request: Request): Promise<NextResponse> {
   const controllers = lazyControllers();

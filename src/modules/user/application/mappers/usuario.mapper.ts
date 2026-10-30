@@ -3,7 +3,8 @@ import type { Usuario } from '../../domain/entities/usuario.entity';
 
 export type UsuarioDto = {
   id: string;
-  redeId: string;
+  redeId: string | null;
+  isMaster: boolean;
   nome: string;
   email: string;
   role: string;
@@ -23,10 +24,11 @@ export class UsuarioMapper extends Mapper<MapUsuarioParams, UsuarioDto> {
     return {
       id: usuario.id.toString(),
       redeId: usuario.redeId,
+      isMaster: usuario.isMaster,
       nome: usuario.nome.value,
       email: usuario.email.value,
-      role: usuario.role.value,
-      roleLabel: usuario.role.label,
+      role: usuario.isMaster ? 'admin_master' : usuario.role.value,
+      roleLabel: usuario.isMaster ? 'Administrador Master' : usuario.role.label,
       telefone: usuario.telefone,
       unidadesAcesso: usuario.unidadesAcesso,
       profissionalId: usuario.profissionalId,

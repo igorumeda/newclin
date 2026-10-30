@@ -8,8 +8,8 @@ import {
   listarUsuariosRequestSchema,
 } from '../dtos/usuario.request.dto';
 
-/** Gestão de usuários é exclusiva do Admin da Rede (§2.3). */
-const GESTAO = ['admin_rede'] as const;
+/** Gestão de usuários é exclusiva do Admin da Rede ou Administrador Master (§2.3). */
+const GESTAO = ['admin_master', 'admin_rede'] as const;
 
 export async function listarUsuariosRoute(request: Request): Promise<NextResponse> {
   const controllers = lazyControllers();
@@ -29,7 +29,7 @@ export async function obterPerfilAtualRoute(request: Request): Promise<NextRespo
   const controllers = lazyControllers();
   return handleRoute({
     request,
-    allowedRoles: ['admin_rede', 'gestor_unidade', 'profissional', 'recepcao'],
+    allowedRoles: ['admin_master', 'admin_rede', 'gestor_unidade', 'profissional', 'recepcao'],
     handler: async ({ context }) =>
       controllers.usuario.handle({ action: 'perfil-atual', context }),
   });
@@ -43,7 +43,7 @@ export async function criarUsuarioRoute(request: Request): Promise<NextResponse>
     audit: {
       action: 'criar',
       entity: 'convites',
-      description: 'Convite de usuário da rede',
+      description: 'Convite de usuário',
     },
     handler: async ({ context, body }) => {
       const input = criarUsuarioRequestSchema.parse(body);
@@ -69,7 +69,7 @@ export async function atualizarUsuarioRoute(
     audit: {
       action: 'atualizar',
       entity: 'profiles',
-      description: 'Alteração de usuário da rede',
+      description: 'Alteração de usuário',
     },
     handler: async ({ context, body }) => {
       const input = atualizarUsuarioRequestSchema.parse(body);
@@ -95,7 +95,7 @@ export async function inativarUsuarioRoute(
     audit: {
       action: 'excluir',
       entity: 'profiles',
-      description: 'Inativação de usuário da rede',
+      description: 'Inativação de usuário',
     },
     handler: async ({ context }) =>
       controllers.usuario.handle({
@@ -118,7 +118,7 @@ export async function reativarUsuarioRoute(
     audit: {
       action: 'atualizar',
       entity: 'profiles',
-      description: 'Reativação de usuário da rede',
+      description: 'Reativação de usuário',
     },
     handler: async ({ context }) =>
       controllers.usuario.handle({

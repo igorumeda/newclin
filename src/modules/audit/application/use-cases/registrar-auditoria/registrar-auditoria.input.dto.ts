@@ -1,5 +1,5 @@
 export type RegistrarAuditoriaInputDto = {
-  redeId: string;
+  redeId: string | null;
   usuarioId?: string | null;
   usuarioNome?: string | null;
   usuarioEmail?: string | null;

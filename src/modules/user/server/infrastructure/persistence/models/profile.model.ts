@@ -2,7 +2,7 @@
 export type ProfileModel = {
   id: string;
   auth_user_id: string | null;
-  rede_id: string;
+  rede_id: string | null;
   nome: string;
   email: string;
   role: string;
@@ -19,7 +19,7 @@ export type ProfileModel = {
 export type ProfileModelData = {
   id: string;
   auth_user_id: string | null;
-  rede_id: string;
+  rede_id: string | null;
   nome: string;
   email: string;
   role: string;

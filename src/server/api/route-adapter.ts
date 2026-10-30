@@ -150,6 +150,7 @@ function createAnonymousContext(request: Request): RequestContext {
     userEmail: '',
     role: 'recepcao',
     redeId: '',
+    isMaster: false,
     unidadesAcesso: [],
     profissionalId: null,
     ip: extractClientIp(request),

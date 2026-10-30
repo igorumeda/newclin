@@ -4,7 +4,7 @@ import { Result } from '@core/domain/result';
 import { AcaoAuditoria } from '../value-objects/acao-auditoria.vo';
 
 export type AuditoriaProps = {
-  redeId: string;
+  redeId: string | null;
   usuarioId: string | null;
   usuarioNome: string | null;
   usuarioEmail: string | null;
@@ -24,7 +24,7 @@ export type AuditoriaProps = {
 export type AuditoriaConstructorParams = EntityConstructorParams<AuditoriaProps>;
 
 export type RegistrarAuditoriaParams = {
-  redeId: string;
+  redeId: string | null;
   usuarioId?: string | null;
   usuarioNome?: string | null;
   usuarioEmail?: string | null;
@@ -50,7 +50,7 @@ export class Auditoria extends Entity<AuditoriaProps> {
     super(params);
   }
 
-  get redeId(): string {
+  get redeId(): string | null {
     return this.props.redeId;
   }
   get usuarioId(): string | null {

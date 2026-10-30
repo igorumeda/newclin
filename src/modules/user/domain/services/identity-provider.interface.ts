@@ -8,8 +8,9 @@ import type { AppRole } from '../value-objects/role.vo';
 export type CriarCredenciaisParams = {
   email: string;
   nome: string;
-  redeId: string;
+  redeId: string | null;
   role: AppRole;
+  telefone?: string | null;
   unidadesAcesso: string[];
   profissionalId: string | null;
   redirectTo?: string;
@@ -25,7 +26,7 @@ export type AtualizarCredenciaisParams = {
   authUserId: string;
   email?: string;
   nome?: string;
-  redeId?: string;
+  redeId?: string | null;
   role?: AppRole;
   unidadesAcesso?: string[];
   profissionalId?: string | null;

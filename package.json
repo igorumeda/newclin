@@ -10,9 +10,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
-    "db:push": "supabase db push",
-    "db:reset": "supabase db reset",
-    "db:new": "supabase migration new"
+    "db:push": "npx supabase db push"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

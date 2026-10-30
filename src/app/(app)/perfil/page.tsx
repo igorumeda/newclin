@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { LogOut, Mail, Phone, Save, ShieldCheck, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageHeader } from '@/client/ui/page-header';
@@ -22,7 +22,7 @@ import { formatarDataHora } from '@/client/lib/format';
 export default function PerfilPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { perfil, atualizarPerfil, sair } = useAuth();
+  const { perfil, ehMaster, atualizarPerfil, sair } = useAuth();
   const { unidades } = useUnidadeAtiva();
 
   const usuario = perfil?.usuario ?? null;
@@ -49,7 +49,14 @@ export default function PerfilPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <PageHeader titulo="Meu perfil" descricao="Dados de acesso, papel na rede e unidades disponíveis." />
+      <PageHeader
+        titulo="Meu perfil"
+        descricao={
+          ehMaster
+            ? 'Dados de acesso e permissões globais de Administrador Master.'
+            : 'Dados de acesso, papel na rede e unidades disponíveis.'
+        }
+      />
 
       <Card>
         <CardHeader>
@@ -94,7 +101,7 @@ export default function PerfilPage() {
             <Button
               onClick={() => salvar.mutate()}
               carregando={salvar.isPending}
-              disabled={!usuario || nome.trim().length < 3 || nome === usuario.nome && telefone === (usuario.telefone ?? '')}
+              disabled={!usuario || nome.trim().length < 3 || (nome === usuario.nome && telefone === (usuario.telefone ?? ''))}
             >
               <Save aria-hidden />
               Salvar alterações
@@ -112,7 +119,12 @@ export default function PerfilPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="default">{usuario ? ROLE_LABELS[usuario.role as AppRole] : '—'}</Badge>
+            <Badge variant="default">
+              {usuario ? (ROLE_LABELS[usuario.role as AppRole] ?? usuario.roleLabel) : '—'}
+            </Badge>
+            {ehMaster ? (
+              <Badge variant="secondary">Escopo Global · Todas as Redes</Badge>
+            ) : null}
             {usuario?.profissionalId ? <Badge variant="secondary">vinculado a profissional</Badge> : null}
           </div>
 
@@ -138,26 +150,31 @@ export default function PerfilPage() {
             </div>
           </div>
 
-          <Separator />
+          {!ehMaster ? (
+            <>
+              <Separator />
 
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Unidades disponíveis
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {(usuario?.unidadesAcesso.length ? unidades.filter((u) => usuario.unidadesAcesso.includes(u.id)) : unidades).map(
-                (unidade) => (
-                  <Badge key={unidade.id} variant="secondary">
-                    {unidade.nome}
-                  </Badge>
-                ),
-              )}
-            </div>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Troque a unidade ativa pelo seletor no topo da página. Suas permissões valem para todas as unidades
-              listadas.
-            </p>
-          </div>
+              <div>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Unidades disponíveis
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {(usuario?.unidadesAcesso.length
+                    ? unidades.filter((u) => usuario.unidadesAcesso.includes(u.id))
+                    : unidades
+                  ).map((unidade) => (
+                    <Badge key={unidade.id} variant="secondary">
+                      {unidade.nome}
+                    </Badge>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Troque a unidade ativa pelo seletor no topo da página. Suas permissões valem para todas as unidades
+                  listadas.
+                </p>
+              </div>
+            </>
+          ) : null}
         </CardContent>
       </Card>
 

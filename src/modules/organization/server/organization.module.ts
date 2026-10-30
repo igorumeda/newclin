@@ -18,6 +18,7 @@ import { ListarUnidadesUseCase } from '../application/use-cases/listar-unidades/
 import { CriarUnidadeUseCase } from '../application/use-cases/criar-unidade/criar-unidade.use-case';
 import { AtualizarUnidadeUseCase } from '../application/use-cases/atualizar-unidade/atualizar-unidade.use-case';
 import { InativarUnidadeUseCase } from '../application/use-cases/inativar-unidade/inativar-unidade.use-case';
+import { ObterResumoMasterUseCase } from '../application/use-cases/obter-resumo-master/obter-resumo-master.use-case';
 import { OrganizacaoController } from './api/controllers/organizacao.controller';
 
 export type OrganizationModuleDependencies = {
@@ -32,7 +33,11 @@ export function createOrganizationModule(dependencies: OrganizationModuleDepende
   const organizacaoMapper = new OrganizacaoMapper();
   const unidadeDtoMapper = new UnidadeMapper();
 
-  const redeRepository = new RedeRepositoryImpl({ supabase: dependencies.supabase, mapper: redeMapper });
+  const redeRepository = new RedeRepositoryImpl({
+    supabase: dependencies.supabase,
+    serviceClient: dependencies.serviceClient,
+    mapper: redeMapper,
+  });
   const unidadeRepository = new UnidadeRepositoryImpl({
     supabase: dependencies.supabase,
     mapper: unidadeMapper,
@@ -69,6 +74,7 @@ export function createOrganizationModule(dependencies: OrganizationModuleDepende
   const criarUnidade = new CriarUnidadeUseCase({ unidadeRepository, mapper: unidadeDtoMapper });
   const atualizarUnidade = new AtualizarUnidadeUseCase({ unidadeRepository, mapper: unidadeDtoMapper });
   const inativarUnidade = new InativarUnidadeUseCase({ unidadeRepository, mapper: unidadeDtoMapper });
+  const obterResumoMaster = new ObterResumoMasterUseCase({ redeRepository });
 
   const controller = new OrganizacaoController({
     obterOrganizacao,
@@ -79,6 +85,7 @@ export function createOrganizationModule(dependencies: OrganizationModuleDepende
     criarUnidade,
     atualizarUnidade,
     inativarUnidade,
+    obterResumoMaster,
   });
 
   return {
@@ -94,6 +101,7 @@ export function createOrganizationModule(dependencies: OrganizationModuleDepende
       criarUnidade,
       atualizarUnidade,
       inativarUnidade,
+      obterResumoMaster,
     },
   };
 }

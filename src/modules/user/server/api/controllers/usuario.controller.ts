@@ -28,7 +28,7 @@ export type UsuarioControllerRequest =
   | { action: 'listar'; context: RequestContext; input: Omit<ListarUsuariosInputDto, 'redeId'> }
   | { action: 'perfil-atual'; context: RequestContext }
   | { action: 'criar'; context: RequestContext; input: Omit<CriarUsuarioInputDto, 'redeId' | 'appUrl'>; appUrl: string }
-  | { action: 'atualizar'; context: RequestContext; usuarioId: string; input: Omit<AtualizarUsuarioInputDto, 'usuarioId'> }
+  | { action: 'atualizar'; context: RequestContext; usuarioId: string; input: Omit<AtualizarUsuarioInputDto, 'usuarioId' | 'solicitanteRedeId'> }
   | { action: 'inativar'; context: RequestContext; usuarioId: string }
   | { action: 'reativar'; context: RequestContext; usuarioId: string };
 
@@ -58,12 +58,16 @@ export class UsuarioController extends Controller<UsuarioControllerRequest, Http
     }
   }
 
+  private resolveRedeScope(context: RequestContext): string | null {
+    return context.isMaster ? null : context.redeId;
+  }
+
   private async listar(
     request: Extract<UsuarioControllerRequest, { action: 'listar' }>,
   ): Promise<HttpResponse> {
     const result = await this.dependencies.listarUsuarios.execute({
       ...request.input,
-      redeId: request.context.redeId,
+      redeId: this.resolveRedeScope(request.context),
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
     return HttpResponse.ok(result.value.items, { ...result.value.meta });
@@ -84,7 +88,7 @@ export class UsuarioController extends Controller<UsuarioControllerRequest, Http
   ): Promise<HttpResponse> {
     const result = await this.dependencies.criarUsuario.execute({
       ...request.input,
-      redeId: request.context.redeId,
+      redeId: this.resolveRedeScope(request.context),
       appUrl: request.appUrl,
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
@@ -96,6 +100,7 @@ export class UsuarioController extends Controller<UsuarioControllerRequest, Http
   ): Promise<HttpResponse> {
     const result = await this.dependencies.atualizarUsuario.execute({
       usuarioId: request.usuarioId,
+      solicitanteRedeId: this.resolveRedeScope(request.context),
       ...request.input,
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
@@ -108,6 +113,7 @@ export class UsuarioController extends Controller<UsuarioControllerRequest, Http
     const result = await this.dependencies.inativarUsuario.execute({
       usuarioId: request.usuarioId,
       solicitanteId: request.context.userId,
+      solicitanteRedeId: this.resolveRedeScope(request.context),
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
     return HttpResponse.ok(result.value);
@@ -118,6 +124,7 @@ export class UsuarioController extends Controller<UsuarioControllerRequest, Http
   ): Promise<HttpResponse> {
     const result = await this.dependencies.reativarUsuario.execute({
       usuarioId: request.usuarioId,
+      solicitanteRedeId: this.resolveRedeScope(request.context),
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
     return HttpResponse.ok(result.value);
