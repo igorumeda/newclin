@@ -8,8 +8,10 @@ import { handleRoute } from '@/server/api/route-adapter';
 import { lazyControllers } from '@/server/di/container';
 import {
   atualizarOrganizacaoRequestSchema,
+  atualizarRedeMasterRequestSchema,
   atualizarTemaRequestSchema,
   atualizarUnidadeRequestSchema,
+  criarRedeMasterRequestSchema,
   criarUnidadeRequestSchema,
   listarUnidadesRequestSchema,
 } from '../dtos/organizacao.request.dto';
@@ -24,6 +26,53 @@ export async function obterResumoMasterRoute(request: Request): Promise<NextResp
     allowedRoles: [...MASTER],
     handler: async ({ context }) =>
       controllers.organizacao.handle({ action: 'resumo-master', context }),
+  });
+}
+
+export async function criarRedeMasterRoute(request: Request): Promise<NextResponse> {
+  const controllers = lazyControllers();
+  return handleRoute({
+    request,
+    allowedRoles: [...MASTER],
+    audit: {
+      action: 'criar',
+      entity: 'redes',
+      description: 'Criação de nova rede na plataforma',
+    },
+    handler: async ({ context, body }) => {
+      const input = criarRedeMasterRequestSchema.parse(body);
+      return controllers.organizacao.handle({
+        action: 'criar-rede-master',
+        context,
+        input,
+      });
+    },
+  });
+}
+
+export async function atualizarRedeMasterRoute(
+  request: Request,
+  params: { redeId: string },
+): Promise<NextResponse> {
+  const controllers = lazyControllers();
+  return handleRoute({
+    request,
+    params,
+    allowedRoles: [...MASTER],
+    audit: {
+      action: 'atualizar',
+      entity: 'redes',
+      description: 'Atualização de rede pelo Administrador Master',
+    },
+    handler: async ({ context, body }) => {
+      const input = atualizarRedeMasterRequestSchema.parse(body);
+      return controllers.organizacao.handle({
+        action: 'atualizar-rede-master',
+        context,
+        redeId: params.redeId,
+        input,
+      });
+    },
   });
 }
 

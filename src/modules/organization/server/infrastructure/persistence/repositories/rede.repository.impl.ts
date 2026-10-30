@@ -1,6 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { RedeRepository } from '../../../../domain/repositories/rede-repository.base';
 import type {
+  ExistsRedeByCnpjParams,
+  ExistsRedeBySlugParams,
   RedeId,
   ResumoMasterRedes,
 } from '../../../../domain/repositories/rede-repository.interface';
@@ -68,13 +70,61 @@ export class RedeRepositoryImpl extends RedeRepository {
       .is('deleted_at', null)
       .maybeSingle<RedeModel>();
 
-    return data ? this.mapper.toDomain({ record: data }) : null;
+    if (data) return this.mapper.toDomain({ record: data });
+
+    const { data: fallbackData } = await this.serviceClient
+      .from('redes')
+      .select(REDE_COLUMNS)
+      .eq('id', id)
+      .is('deleted_at', null)
+      .maybeSingle<RedeModel>();
+
+    return fallbackData ? this.mapper.toDomain({ record: fallbackData }) : null;
+  }
+
+  async create(rede: Rede): Promise<void> {
+    const data = this.mapper.toPersistence({ entity: rede });
+    const { error } = await this.serviceClient.from('redes').insert(data);
+    if (error) throw new Error(error.message);
   }
 
   async update(rede: Rede): Promise<void> {
     const data = this.mapper.toPersistence({ entity: rede });
-    const { error } = await this.supabase.from('redes').update(data).eq('id', data.id);
+    const { error } = await this.serviceClient
+      .from('redes')
+      .update(data)
+      .eq('id', data.id);
     if (error) throw new Error(error.message);
+  }
+
+  async existsByCnpj({ cnpj, excludeId }: ExistsRedeByCnpjParams): Promise<boolean> {
+    let query = this.serviceClient
+      .from('redes')
+      .select('id')
+      .eq('cnpj', cnpj)
+      .is('deleted_at', null);
+
+    if (excludeId) {
+      query = query.neq('id', excludeId);
+    }
+
+    const { data } = await query.maybeSingle();
+    return Boolean(data);
+  }
+
+  async existsBySlug({ slug, excludeId }: ExistsRedeBySlugParams): Promise<boolean> {
+    let query = this.serviceClient
+      .from('redes')
+      .select('id')
+      .ilike('slug', slug)
+      .is('deleted_at', null);
+
+    if (excludeId) {
+      query = query.neq('id', excludeId);
+    }
+
+    const { data } = await query.maybeSingle();
+    return Boolean(data);
   }
 
   async obterResumoMaster(): Promise<ResumoMasterRedes> {

@@ -5,10 +5,14 @@ import type { IUseCase } from '@core/application/use-case.interface';
 import type {
   AtualizarOrganizacaoInputDto,
   AtualizarOrganizacaoOutputDto,
+  AtualizarRedeMasterInputDto,
+  AtualizarRedeMasterOutputDto,
   AtualizarTemaInputDto,
   AtualizarTemaOutputDto,
   AtualizarUnidadeInputDto,
   AtualizarUnidadeOutputDto,
+  CriarRedeMasterInputDto,
+  CriarRedeMasterOutputDto,
   CriarUnidadeInputDto,
   CriarUnidadeOutputDto,
   DefinirLogotipoInputDto,
@@ -33,11 +37,24 @@ export type OrganizacaoControllerDependencies = {
   atualizarUnidade: IUseCase<AtualizarUnidadeInputDto, AtualizarUnidadeOutputDto>;
   inativarUnidade: IUseCase<InativarUnidadeInputDto, InativarUnidadeOutputDto>;
   obterResumoMaster: IUseCase<ObterResumoMasterInputDto, ObterResumoMasterOutputDto>;
+  criarRedeMaster: IUseCase<CriarRedeMasterInputDto, CriarRedeMasterOutputDto>;
+  atualizarRedeMaster: IUseCase<AtualizarRedeMasterInputDto, AtualizarRedeMasterOutputDto>;
 };
 
 export type OrganizacaoControllerRequest =
   | { action: 'obter'; context: RequestContext }
   | { action: 'resumo-master'; context: RequestContext }
+  | {
+      action: 'criar-rede-master';
+      context: RequestContext;
+      input: Omit<CriarRedeMasterInputDto, 'isMaster'>;
+    }
+  | {
+      action: 'atualizar-rede-master';
+      context: RequestContext;
+      redeId: string;
+      input: Omit<AtualizarRedeMasterInputDto, 'isMaster' | 'redeId'>;
+    }
   | { action: 'atualizar'; context: RequestContext; input: Omit<AtualizarOrganizacaoInputDto, 'redeId'> }
   | { action: 'atualizar-tema'; context: RequestContext; input: Omit<AtualizarTemaInputDto, 'redeId'> }
   | { action: 'definir-logotipo'; context: RequestContext; input: Omit<DefinirLogotipoInputDto, 'redeId'> }
@@ -69,6 +86,10 @@ export class OrganizacaoController extends Controller<OrganizacaoControllerReque
         return this.obter(request.context);
       case 'resumo-master':
         return this.resumoMaster(request.context);
+      case 'criar-rede-master':
+        return this.criarRedeMaster(request);
+      case 'atualizar-rede-master':
+        return this.atualizarRedeMaster(request);
       case 'atualizar':
         return this.atualizar(request);
       case 'atualizar-tema':
@@ -97,6 +118,29 @@ export class OrganizacaoController extends Controller<OrganizacaoControllerReque
   private async resumoMaster(context: RequestContext): Promise<HttpResponse> {
     const result = await this.dependencies.obterResumoMaster.execute({
       isMaster: context.isMaster,
+    });
+    if (result.isFailure) return HttpResponse.fromDomainError(result.error);
+    return HttpResponse.ok(result.value);
+  }
+
+  private async criarRedeMaster(
+    request: Extract<OrganizacaoControllerRequest, { action: 'criar-rede-master' }>,
+  ): Promise<HttpResponse> {
+    const result = await this.dependencies.criarRedeMaster.execute({
+      ...request.input,
+      isMaster: request.context.isMaster,
+    });
+    if (result.isFailure) return HttpResponse.fromDomainError(result.error);
+    return HttpResponse.created(result.value);
+  }
+
+  private async atualizarRedeMaster(
+    request: Extract<OrganizacaoControllerRequest, { action: 'atualizar-rede-master' }>,
+  ): Promise<HttpResponse> {
+    const result = await this.dependencies.atualizarRedeMaster.execute({
+      ...request.input,
+      redeId: request.redeId,
+      isMaster: request.context.isMaster,
     });
     if (result.isFailure) return HttpResponse.fromDomainError(result.error);
     return HttpResponse.ok(result.value);

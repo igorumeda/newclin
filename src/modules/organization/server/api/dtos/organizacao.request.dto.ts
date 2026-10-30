@@ -53,6 +53,25 @@ export const atualizarOrganizacaoRequestSchema = z.object({
   config: configSchema.optional(),
 });
 
+export const criarRedeMasterRequestSchema = z.object({
+  nome: z.string().trim().min(3, 'Informe o nome da rede').max(120),
+  razaoSocial: z.string().trim().max(160).nullable().optional(),
+  cnpj: z.string().trim().max(18).nullable().optional(),
+  slug: z.string().trim().max(60).nullable().optional(),
+  email: z
+    .string()
+    .trim()
+    .email('Formato de e-mail inválido')
+    .nullable()
+    .optional()
+    .or(z.literal('').transform(() => null)),
+  telefone: z.string().trim().max(20).nullable().optional(),
+  presetTema: z.string().trim().max(40).optional(),
+  ativo: z.boolean().optional(),
+});
+
+export const atualizarRedeMasterRequestSchema = criarRedeMasterRequestSchema.partial();
+
 const coresSchema = z.record(z.string().refine(Tema.corValida, 'Cor HSL inválida'));
 
 export const atualizarTemaRequestSchema = z.object({
@@ -92,6 +111,10 @@ export const atualizarUnidadeRequestSchema = criarUnidadeRequestSchema.partial()
 
 export type AtualizarOrganizacaoRequestDto = z.infer<
   typeof atualizarOrganizacaoRequestSchema
+>;
+export type CriarRedeMasterRequestDto = z.infer<typeof criarRedeMasterRequestSchema>;
+export type AtualizarRedeMasterRequestDto = z.infer<
+  typeof atualizarRedeMasterRequestSchema
 >;
 export type AtualizarTemaRequestDto = z.infer<typeof atualizarTemaRequestSchema>;
 export type CriarUnidadeRequestDto = z.infer<typeof criarUnidadeRequestSchema>;

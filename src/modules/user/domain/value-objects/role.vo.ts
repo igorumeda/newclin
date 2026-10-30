@@ -39,6 +39,7 @@ export const ROLE_DESCRIPTIONS: Record<AppRole, string> = {
 /** Permissões granulares reutilizadas pelo client (UI) e pelo server (API). */
 export const PERMISSIONS = [
   'master:redes:ler',
+  'master:redes:gerenciar',
   'master:usuarios:gerenciar',
   'organizacao:ler',
   'organizacao:editar',
@@ -81,6 +82,7 @@ const TENANT_ADMIN_PERMISSIONS: Permission[] = PERMISSIONS.filter(
 const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
   admin_master: [
     'master:redes:ler',
+    'master:redes:gerenciar',
     'master:usuarios:gerenciar',
     'usuarios:ler',
     'usuarios:gerenciar',

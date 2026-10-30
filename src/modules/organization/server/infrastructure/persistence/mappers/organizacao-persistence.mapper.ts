@@ -46,6 +46,7 @@ export class RedePersistenceMapper extends PersistenceMapper<Rede, RedeModel, Re
       logotipo_url: entity.logotipoUrl,
       logotipo_path: entity.logotipoPath,
       config: entity.config,
+      ativo: entity.ativo,
     };
   }
 }

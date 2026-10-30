@@ -20,6 +20,7 @@ export class OrganizacaoMapper extends Mapper<MapRedeParams, OrganizacaoDto> {
       logotipoUrl: rede.logotipoUrl,
       logotipoPath: rede.logotipoPath,
       config: rede.config,
+      ativo: rede.ativo,
     };
   }
 }

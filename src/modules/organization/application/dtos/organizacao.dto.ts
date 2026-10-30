@@ -40,6 +40,7 @@ export type OrganizacaoDto = {
   logotipoUrl: string | null;
   logotipoPath: string | null;
   config: RedeConfig;
+  ativo: boolean;
 };
 
 export type ObterOrganizacaoOutputDto = OrganizacaoDto;
@@ -85,7 +86,7 @@ export type DefinirLogotipoOutputDto = {
   logotipoPath: string | null;
 };
 
-// ── Visão Geral Master (todas as redes) ─────────────────────────────────────
+// ── Administração Master (todas as redes) ───────────────────────────────────
 export type ObterResumoMasterInputDto = {
   isMaster: boolean;
 };
@@ -94,6 +95,35 @@ export type ResumoMasterIndicadoresDto = ResumoMasterIndicadores;
 export type ResumoMasterRedeItemDto = ResumoMasterRedeItem;
 export type ResumoMasterRedesDto = ResumoMasterRedes;
 export type ObterResumoMasterOutputDto = ResumoMasterRedesDto;
+
+export type CriarRedeMasterInputDto = {
+  isMaster: boolean;
+  nome: string;
+  razaoSocial?: string | null;
+  cnpj?: string | null;
+  slug?: string | null;
+  email?: string | null;
+  telefone?: string | null;
+  presetTema?: string;
+  ativo?: boolean;
+};
+
+export type CriarRedeMasterOutputDto = OrganizacaoDto;
+
+export type AtualizarRedeMasterInputDto = {
+  isMaster: boolean;
+  redeId: string;
+  nome?: string;
+  razaoSocial?: string | null;
+  cnpj?: string | null;
+  slug?: string | null;
+  email?: string | null;
+  telefone?: string | null;
+  presetTema?: string;
+  ativo?: boolean;
+};
+
+export type AtualizarRedeMasterOutputDto = OrganizacaoDto;
 
 // ── Unidades ────────────────────────────────────────────────────────────────
 export type UnidadeDto = {

@@ -2,6 +2,16 @@ import type { Rede } from '../entities/rede.entity';
 
 export type RedeId = string;
 
+export type ExistsRedeByCnpjParams = {
+  cnpj: string;
+  excludeId?: RedeId;
+};
+
+export type ExistsRedeBySlugParams = {
+  slug: string;
+  excludeId?: RedeId;
+};
+
 export type ResumoMasterIndicadores = {
   totalRedes: number;
   redesAtivas: number;
@@ -41,7 +51,10 @@ export type ResumoMasterRedes = {
 
 export interface IRedeRepository {
   findById(id: RedeId): Promise<Rede | null>;
+  create(rede: Rede): Promise<void>;
   update(rede: Rede): Promise<void>;
+  existsByCnpj(params: ExistsRedeByCnpjParams): Promise<boolean>;
+  existsBySlug(params: ExistsRedeBySlugParams): Promise<boolean>;
   obterResumoMaster(): Promise<ResumoMasterRedes>;
 }
 

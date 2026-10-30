@@ -53,6 +53,23 @@ create policy redes_select on public.redes
   for select to authenticated
   using (id = public.current_rede_id() or public.is_master_admin());
 
+drop policy if exists redes_insert on public.redes;
+create policy redes_insert on public.redes
+  for insert to authenticated
+  with check (public.is_master_admin());
+
+drop policy if exists redes_update on public.redes;
+create policy redes_update on public.redes
+  for update to authenticated
+  using (
+    (id = public.current_rede_id() and public.is_rede_admin())
+    or public.is_master_admin()
+  )
+  with check (
+    (id = public.current_rede_id() and public.is_rede_admin())
+    or public.is_master_admin()
+  );
+
 drop policy if exists profiles_select on public.profiles;
 create policy profiles_select on public.profiles
   for select to authenticated

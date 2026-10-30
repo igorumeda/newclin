@@ -19,6 +19,8 @@ import { CriarUnidadeUseCase } from '../application/use-cases/criar-unidade/cria
 import { AtualizarUnidadeUseCase } from '../application/use-cases/atualizar-unidade/atualizar-unidade.use-case';
 import { InativarUnidadeUseCase } from '../application/use-cases/inativar-unidade/inativar-unidade.use-case';
 import { ObterResumoMasterUseCase } from '../application/use-cases/obter-resumo-master/obter-resumo-master.use-case';
+import { CriarRedeMasterUseCase } from '../application/use-cases/criar-rede-master/criar-rede-master.use-case';
+import { AtualizarRedeMasterUseCase } from '../application/use-cases/atualizar-rede-master/atualizar-rede-master.use-case';
 import { OrganizacaoController } from './api/controllers/organizacao.controller';
 
 export type OrganizationModuleDependencies = {
@@ -75,6 +77,14 @@ export function createOrganizationModule(dependencies: OrganizationModuleDepende
   const atualizarUnidade = new AtualizarUnidadeUseCase({ unidadeRepository, mapper: unidadeDtoMapper });
   const inativarUnidade = new InativarUnidadeUseCase({ unidadeRepository, mapper: unidadeDtoMapper });
   const obterResumoMaster = new ObterResumoMasterUseCase({ redeRepository });
+  const criarRedeMaster = new CriarRedeMasterUseCase({
+    redeRepository,
+    mapper: organizacaoMapper,
+  });
+  const atualizarRedeMaster = new AtualizarRedeMasterUseCase({
+    redeRepository,
+    mapper: organizacaoMapper,
+  });
 
   const controller = new OrganizacaoController({
     obterOrganizacao,
@@ -86,6 +96,8 @@ export function createOrganizationModule(dependencies: OrganizationModuleDepende
     atualizarUnidade,
     inativarUnidade,
     obterResumoMaster,
+    criarRedeMaster,
+    atualizarRedeMaster,
   });
 
   return {
@@ -102,6 +114,8 @@ export function createOrganizationModule(dependencies: OrganizationModuleDepende
       atualizarUnidade,
       inativarUnidade,
       obterResumoMaster,
+      criarRedeMaster,
+      atualizarRedeMaster,
     },
   };
 }

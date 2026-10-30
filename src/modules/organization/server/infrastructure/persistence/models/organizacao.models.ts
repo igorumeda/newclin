@@ -30,6 +30,7 @@ export type RedeModelData = {
   logotipo_url: string | null;
   logotipo_path: string | null;
   config: RedeConfig;
+  ativo: boolean;
 };
 
 export const REDE_COLUMNS =

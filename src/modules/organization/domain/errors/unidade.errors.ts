@@ -43,3 +43,36 @@ export class RedeNotFoundError extends NotFoundError {
     this.name = 'RedeNotFoundError';
   }
 }
+
+export type RedeCnpjDuplicadoErrorParams = { cnpj: string };
+
+export class RedeCnpjDuplicadoError extends ConflictError {
+  constructor(params: RedeCnpjDuplicadoErrorParams) {
+    super({
+      message: `Já existe uma rede cadastrada com o CNPJ "${params.cnpj}"`,
+      code: 'REDE_CNPJ_DUPLICADO',
+    });
+    this.name = 'RedeCnpjDuplicadoError';
+  }
+}
+
+export type RedeSlugDuplicadoErrorParams = { slug: string };
+
+export class RedeSlugDuplicadoError extends ConflictError {
+  constructor(params: RedeSlugDuplicadoErrorParams) {
+    super({
+      message: `Já existe uma rede cadastrada com o identificador "${params.slug}"`,
+      code: 'REDE_SLUG_DUPLICADO',
+    });
+    this.name = 'RedeSlugDuplicadoError';
+  }
+}
+
+export type InvalidRedeDataErrorParams = { reason: string };
+
+export class InvalidRedeDataError extends ValidationError {
+  constructor(params: InvalidRedeDataErrorParams) {
+    super({ message: params.reason, code: 'INVALID_REDE_DATA' });
+    this.name = 'InvalidRedeDataError';
+  }
+}
