@@ -1,10 +1,10 @@
-import { redirect } from 'next/navigation';
-import { isSupabaseConfigured } from '@/server/config/env.config';
+import { LandingPage } from '@/client/components/landing/landing-page';
+import { getEnv } from '@/server/config/env.config';
+import { obterCatalogoImagensPublicas } from '@/shared/utils/public-images.util';
 
-/**
- * A raiz encaminha para o painel; o `middleware.ts` cuida da autenticação.
- * Sem as credenciais do Supabase, mostra o guia de configuração.
- */
 export default function HomePage() {
-  redirect(isSupabaseConfigured() ? '/dashboard' : '/configuracao-pendente');
+  const supabaseUrl = getEnv().NEXT_PUBLIC_SUPABASE_URL;
+  const imagens = obterCatalogoImagensPublicas({ supabaseUrl });
+
+  return <LandingPage imagens={imagens} />;
 }

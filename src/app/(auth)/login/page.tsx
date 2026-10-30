@@ -29,6 +29,12 @@ import {
 import { Input } from '@/client/ui/input';
 import { authService } from '@/client/services/auth.service';
 import { ApiError } from '@/client/services/api-client.service';
+import { obterImagemPublica } from '@/shared/utils/public-images.util';
+
+const logoLoginUrl = obterImagemPublica({
+  caminho: 'logotipo/mini_logotipo_bg_transparent.png',
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+});
 
 const esquema = z.object({
   email: z.string().trim().min(1, 'Informe o e-mail').email('E-mail inválido'),
@@ -76,11 +82,28 @@ function LoginPageInterno() {
 
   return (
     <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle className="text-xl">Entrar na plataforma</CardTitle>
-        <CardDescription>
-          Acesse com o e-mail cadastrado pela administração da rede.
-        </CardDescription>
+      <CardHeader className="space-y-3">
+        {logoLoginUrl ? (
+          <div className="flex justify-center pb-1">
+            <Link
+              href="/"
+              aria-label="Voltar para a página inicial da NewClin"
+              className="inline-flex items-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <img
+                src={logoLoginUrl}
+                alt="NewClin — Sua clínica no digital"
+                className="h-14 w-auto object-contain"
+              />
+            </Link>
+          </div>
+        ) : null}
+        <div className="space-y-1 text-center sm:text-left">
+          <CardTitle className="text-xl">Entrar na plataforma</CardTitle>
+          <CardDescription>
+            Acesse com o e-mail cadastrado pela administração da rede.
+          </CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
         <Form {...form}>

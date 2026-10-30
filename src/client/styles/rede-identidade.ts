@@ -1,10 +1,16 @@
 import { Tema } from '@/modules/organization/domain/value-objects/tema.vo';
 import type { TemaProps } from '@/modules/organization/domain/value-objects/tema.vo';
+import { obterImagemPublica } from '@/shared/utils/public-images.util';
 import { criarTokensTema } from './tema-tokens';
 
 export const REDE_TEMA_STYLE_ID = 'rede-tema-dark';
 export const REDE_FAVICON_ID = 'rede-favicon';
-export const FAVICON_PADRAO_URL = '/icons/icone.svg';
+export const FAVICON_PADRAO_URL =
+  obterImagemPublica({
+    caminho: 'logotipo/mini_logotipo_icone_bg_transparent.png',
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  }) ?? '/icons/icone.svg';
+
 type AplicarTemaParams = { tema: TemaProps };
 type CarregarLogotipoParams = { url: string | null; signal: AbortSignal };
 type AplicarFaviconParams = { url: string | null };

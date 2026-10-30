@@ -19,6 +19,7 @@ const ROTAS_PUBLICAS = [
 ];
 
 function isPublica(caminho: string): boolean {
+  if (caminho === '/') return true;
   return ROTAS_PUBLICAS.some(
     (rota) => caminho === rota || caminho.startsWith(`${rota}/`),
   );
